@@ -6,7 +6,9 @@ import http from 'http'
 import {readFileSync} from 'fs'
 import { execSync } from "child_process"
 
-const isPi = "armv7" in execSync("uname -a")
+const proc =  execSync("uname -a")
+console.log(prog);
+const isPi = "armv7" in proc
 const thisPath = isPi?"/home/pi/omxServer":"/home/tinmar/Work/mili/omxServer" 
 setBaseDir(thisPath)
 Sensor.setup();
