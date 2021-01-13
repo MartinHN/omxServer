@@ -1,5 +1,4 @@
 import osc from "osc"
-import dgram from 'dgram'
 
 const udpPort=9009;
 
