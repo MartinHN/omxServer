@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<script src="./js/json-editor.js"></script>
+<script src="./jsSchema"></script>
+<h3> Video Config</h3>
+<button type='button' id='submit'> Save</button>
+<div id='editor_holder'></div>
+
+<script>
+    console.log(jsSchema)
+    const editor = new JSONEditor(document.getElementById('editor_holder'), {
+        // Require all properties by default
+        required_by_default: true,
+        // Seed the form with a starting value
+        startval: jsSchema.state,
+        schema: jsSchema.schema
+    });
+
+    // Hook up the submit button to log to the console
+    document.getElementById('submit').addEventListener('click', function () {
+        // Get the value from the editor
+        console.log(editor.getValue());
+    });
+</script>
