@@ -2,11 +2,11 @@ import path from 'path'
 import { execSync, execFileSync } from "child_process"
 import {readFileSync, writeFileSync} from 'fs'
 
-let basePath = '/jome/pi/omxPlayer'
+let basePath = '/home/pi/omxPlayer'
 let pPath=basePath+"playerConf.json"
 export function setBaseDir(d){
     basePath = d;
-    pPath=basePath+"playerConf.json"
+    pPath=basePath+"/playerConf.json"
 }
 
 
