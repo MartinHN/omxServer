@@ -6,7 +6,7 @@ import http from 'http'
 import {readFileSync} from 'fs'
 import { execSync } from "child_process"
 
-const proc =  execSync("uname -a")
+const proc =  execSync("uname -a").toString()
 console.log(proc);
 const isPi = "armv7" in proc
 const thisPath = isPi?"/home/pi/omxServer":"/home/tinmar/Work/mili/omxServer" 
