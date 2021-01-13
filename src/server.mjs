@@ -1,10 +1,15 @@
-import {loadConf,saveConf} from "./persistent.mjs"
+import {loadConf,saveConf,setBaseDir} from "./persistent.mjs"
 import {runOSCServer,regRootNode} from './OSCAPIBinder.mjs'
+import * as Sensor from './Sensor.mjs'
 import rootNode from './rootNode.mjs'
 import http from 'http'
 import {readFileSync} from 'fs'
+import { execSync } from "child_process"
 
-
+const isPi = "armv7" in execSync("uname -a")
+const thisPath = isPi?"/home/pi/omxServer":"/home/tinmar/Work/mili/omxServer" 
+setBaseDir(thisPath)
+Sensor.setup();
 const conf  = loadConf();
 conf.volume=1
 console.log(conf);
@@ -19,7 +24,7 @@ runOSCServer();
 
 // http
 
-const publicPath  = "/home/pi/omxServer/public"
+const publicPath  = thisPath+"/public"
 const requestListener = function (req, res) {
     console.log('req',req.method)
     if(req.url == "/"){

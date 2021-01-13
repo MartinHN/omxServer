@@ -1,5 +1,5 @@
 import osc from "osc"
-import EventEmitter from "EventEmitter"
+import EventEmitter from "events"
 
 const multicastIp = "230.1.1.1"
 const sensorPort = 4000;
@@ -21,24 +21,24 @@ const evts = new EventEmitter();
 oscRcv.on("message", function (msg) {
     console.log('msg',msg);
     if(msg.address == "/mat"){
+        console.log("mat rcvd");
         for(const i = 0 ; i < 64 ; i++){
             therm[i] = msg.args[i].value
         }
         evts.emit("therm",therm);
-
     }
     
 })
 
 oscRcv.on('ready', () => {
-    console.log("listening on port",udpPort)
+    console.log("sensor listening on port",oscRcv.options.localPort)
     
 })
 
 
 
 /// start app
-export function runOSCServer(){
+export function setup(){
     
     // socket.bind(udpPort,'0.0.0.0',()=>{
     //     console.log('rcvd')

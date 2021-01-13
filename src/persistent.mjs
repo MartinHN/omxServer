@@ -1,7 +1,14 @@
-const basePath = '/home/pi/omxServer/'
-const pPath=basePath+"playerConf.json"
+import path from 'path'
 import { execSync, execFileSync } from "child_process"
 import {readFileSync, writeFileSync} from 'fs'
+
+let basePath = '/jome/pi/omxPlayer'
+let pPath=basePath+"playerConf.json"
+export function setBaseDir(d){
+    basePath = d;
+    pPath=basePath+"playerConf.json"
+}
+
 
 function saveWhenPerm(conf){
     const jsonContent = JSON.stringify(conf);
@@ -26,14 +33,16 @@ export  function saveConf(conf){
     let out;
     try{
         out = execSync("mount | grep 'type ext4' | grep rw")
-        if(out){
-            console.log("already in rw mode")
-            saveWhenPerm(conf)
-            return;
-        }
+        
     }catch(e){
         
     }
+    if(out){
+        console.log("already in rw mode")
+        saveWhenPerm(conf)
+        return;
+    }
+    console.log('continuing')
     out =  execFileSync(basePath+"rw.sh",["rw"])
     if(out)console.log("out",out);
     
