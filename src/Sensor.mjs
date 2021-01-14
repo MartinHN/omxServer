@@ -5,12 +5,30 @@ const multicastIp = "230.1.1.1"
 const sensorPort = 4000;
 const toSensorPort = 3000;
 
+export const events = new EventEmitter();
 
 
 const therm = []
 therm.length = 64
 
-const evts = new EventEmitter();
+let connected = false;
+let pingTimeOut;
+let remotePort;
+function updatePing(timeBeforeNext = 3000){
+    if(pingTimeOut){
+        clearTimeout(pingTimeOut);
+    }
+    if(!connected){
+        connected = true;
+        events.emit("connected",true);
+        srv.send("/schema",[],srv.lastMsgInfo.address,remotePort)
+        srv.send("/getState",['call'],srv.lastMsgInfo.address,remotePort)
+    }
+    pingTimeOut = setTimeout(()=>{
+        connected = false;
+        events.emit("connected",false);
+    },timeBeforeNext)
+}
 
 const srv = new OSCServerModule(function (msg) {
     // console.log('msg',msg);
@@ -18,12 +36,25 @@ const srv = new OSCServerModule(function (msg) {
         for(let i = 0 ; i < 64 ; i++){
             therm[i] = msg.args[i+1]
         }
-        evts.emit("therm",therm);
+        events.emit("therm",therm);
         console.log("mat rcvd",therm);
+    }
+    else if(msg.address == "/ping"){
+        const dt = parseInt(msg.args[0]) || 3000;
+        remotePort = parseInt(msg.args[1]) || 3000; 
+        updatePing(dt*2);
+    }
+    else if(msg.address == "/schema"){
+        events.emit("schema",JSON.parse(msg.args[0]))
+    }
+    else if(msg.address == "/getState"){
+        events.emit("state",JSON.parse(msg.args[0]))
+    }
+    else{
+        console.log(' received msg',msg)
     }
     
 })
-
 
 
 
@@ -34,5 +65,7 @@ export function setup(){
     //     console.log('rcvd')
     // })
     srv.connect(multicastIp,sensorPort);
+
+    
     // osc.open({ port: udpPort })
 }

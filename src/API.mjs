@@ -20,17 +20,17 @@ export class APIBase{
         })
     }
     
-
+    
     getJSONSchema(){
-        const res  ={type:"object",properties:{}}
-        const props = res.properties
+        // const res  ={type:"object",properties:{}}
+        const props = {};//res.properties
         for(const [k,v] of Object.entries(this.__members)){
             props[k] = {type:typeToJSONType(v.type)}
         }
-        return res;
+        return props;
     }
-
-
+    
+    
     // Helper
     memberGetter(){
         return new Proxy(this.__members,{
@@ -41,6 +41,19 @@ export class APIBase{
     }
 }
 
+class RemoteAPI  extends APIBase{
+    constructor(jsSchema){
+        super();
+        if(jsSchema.members){
+            for(const [k,v] of Object.entries(jsSchema.members)){
+                this.addMember(k,v.type,v.default);
+            }
+        }
+        
+    }
+    
+}
+
 
 export class NodeInstance{
     childs={}
@@ -48,8 +61,16 @@ export class NodeInstance{
         this.api = a;
     }
     
+    
+    
     getJSONSchema(){
-        return this.api.getJSONSchema()
+        const res = this.api.getJSONSchema();
+        for(const [k,v] of Object.entries(this.childs)){
+            console.log('getting schem of',k)
+            res[k] = v.getJSONSchema()
+        }
+        return res;
+        
     }
     addChild(name,c){
         this.childs[name] = c;
@@ -77,7 +98,7 @@ export class NodeInstance{
     
     getState(){
         const res = {}
-        console.log(Object.keys(this))
+        
         if(this.api){
             const mb = this.api.__members;
             for(const [k,v] of Object.entries(mb)){
@@ -86,7 +107,7 @@ export class NodeInstance{
         }
         const ch = this.childs
         if(ch && Object.keys(ch).length){
-            console.log(ch);
+            
             res['/'] = {};
             for(const [k,v] of Object.entries(ch)){
                 res[k] = v.getState();
@@ -95,4 +116,15 @@ export class NodeInstance{
         return res
     }
     
+}
+
+export function createInstanceFromSchema(schema){
+    const i = new NodeInstance()
+    i.setAPI(new RemoteAPI(schema))
+    if(schema.childs){
+        for(const [k,v] of Object.entries(schema.childs)){
+            i.addChild(k,createInstanceFromSchema(v))
+        }
+    }
+    return i
 }

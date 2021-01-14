@@ -111,6 +111,9 @@ export class OSCServerModule {
   }
   }
   processMsg(msg, time, info) {
+    if(info ){
+      this.lastMsgInfo = {address:info.address,port:info.port};
+    }
     if (this.msgCb) {
       this.msgCb(msg, time, info);
     }
@@ -127,7 +130,8 @@ export class OSCServerModule {
     }
   }
 
-  send(address, args) {
-    this.udpPort.send({address, args})
+  send(address, args,remoteAddr,remotePort) {
+    console.log('sending msg',{address, args},' to',remoteAddr,remotePort)
+    this.udpPort.send({address, args},remoteAddr,remotePort)
   }
 }

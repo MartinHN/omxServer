@@ -12,7 +12,7 @@ export function setBaseDir(d){
 
 function saveWhenPerm(conf){
     const jsonContent = JSON.stringify(conf);
-    console.log(jsonContent);
+    console.log('saving',jsonContent);
     
     writeFileSync(pPath, jsonContent, 'utf8');
 }
