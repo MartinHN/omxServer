@@ -22,12 +22,12 @@ export class APIBase{
     
     
     getJSONSchema(){
-        // const res  ={type:"object",properties:{}}
-        const props = {};//res.properties
+        const res  ={members:{}}
+        const props = res.members
         for(const [k,v] of Object.entries(this.__members)){
             props[k] = {type:typeToJSONType(v.type)}
         }
-        return props;
+        return res;
     }
     
     
@@ -65,9 +65,12 @@ export class NodeInstance{
     
     getJSONSchema(){
         const res = this.api.getJSONSchema();
-        for(const [k,v] of Object.entries(this.childs)){
-            console.log('getting schem of',k)
-            res[k] = v.getJSONSchema()
+        if(this.childs){
+            res['childs']  ={}
+            const childs  =res['childs'];
+            for(const [k,v] of Object.entries(this.childs)){
+                childs[k] = v.getJSONSchema()
+            }
         }
         return res;
         
@@ -85,7 +88,7 @@ export class NodeInstance{
                 }
             }
         }
-        const childs = s['/'];
+        const childs = s;//s['childs'];
         if(childs){
             for(const [k,v] of Object.entries(childs)){
                 const existingChild = this.childs[k];
@@ -108,9 +111,10 @@ export class NodeInstance{
         const ch = this.childs
         if(ch && Object.keys(ch).length){
             
-            res['/'] = {};
+            // res['childs'] = {};
+            const cdic = res;//['childs']
             for(const [k,v] of Object.entries(ch)){
-                res[k] = v.getState();
+                cdic[k] = v.getState();
             }
         }
         return res

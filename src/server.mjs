@@ -17,22 +17,26 @@ Sensor.events.on("connected",c=>{
 })
 
 Sensor.events.on('schema',s=>{
-    console.log('schema',s)
+    console.log('schema',JSON.stringify(s,undefined,"   "))
    const eye =  createInstanceFromSchema(s)
    rootNode.addChild('eye',eye)
-   console.log('global Schema',rootNode.getJSONSchema());
+   console.log('global Schema',JSON.stringify(rootNode.getJSONSchema(),undefined,"  "));
+   
 })
 
 Sensor.events.on('state',s=>{
-    console.log('state'
-    ,s)
-    
+    console.log('state',JSON.stringify(s,undefined,"   "))
+    const eI = rootNode.childs['eye']
+    if(eI){
+        eI.restoreState(s)
+    }
+    console.log('global State',rootNode.getState());
 })
 
-const conf  = loadConf();
-conf.volume=1
-console.log('conf',conf);
-rootNode.restoreState(conf)
+// const conf  = loadConf();
+// conf.volume=1
+// console.log('conf',conf);
+// rootNode.restoreState(conf)
 const nConf = rootNode.getState()
 console.log('new', nConf)
 saveConf(nConf);
