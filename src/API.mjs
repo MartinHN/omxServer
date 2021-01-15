@@ -1,7 +1,9 @@
-
+import {EventEmitter} from 'events'
 function typeToJSONType(v){
     if(v=='s')return'string'
     if(v=='f')return'number'
+    if(v=='b')return'boolean'
+    if(v=='i')return'integer'
     // if(v=='s')return'string'
     
     return v
@@ -9,12 +11,16 @@ function typeToJSONType(v){
 export class APIBase{
     __functions = {}
     __members = {}
-    addFunction(name, fun, args,retType){
-        this.__functions[name] ={fun,args,retType}
+    
+    constructor(){
+        
+    }
+    addFunction(name, fun, argTypes,retType){
+        this.__functions[name] ={fun,argTypes,retType}
     }
     
-    addMember(name,type,defaultValue){
-        this.__members[name] = {type,value:defaultValue,defaultValue};
+    addMember(name,type,opts){
+        this.__members[name] = {type,value:opts.default,opts};
         Object.defineProperty(this.__members[name],'getter',{
             get:()=>{return this.__members[name].value}
         })
@@ -22,10 +28,23 @@ export class APIBase{
     
     
     getJSONSchema(){
-        const res  ={members:{}}
-        const props = res.members
-        for(const [k,v] of Object.entries(this.__members)){
-            props[k] = {type:typeToJSONType(v.type)}
+        const res=  {};
+        if(this.__members && Object.keys(this.__members).length){
+            const members = {}
+            for(const [k,v] of Object.entries(this.__members)){
+                members[k] = {type:typeToJSONType(v.type),minimum:v.opts.minimum,maximum:v.opts.maximum}
+            }
+            res.members  = members
+        }
+        if(this.__functions && Object.keys(this.__functions).length){
+            const funs = {}
+            for(const [k,v] of Object.entries(this.__functions)){
+                funs[k] = {retType:typeToJSONType(v.retType)}
+                if(v.argTypes && v.argTypes.length){
+                    funs[k].argTypes = v.argTypes.map(typeToJSONType)
+                }
+            }
+            res.functions = funs;
         }
         return res;
     }
@@ -39,18 +58,62 @@ export class APIBase{
             }
         })
     }
+    
+    setAnyFrom(from,name,args){
+        console.log("calling or setting ",name)
+        if(name in this.__members){
+            this.__members[name].value = args.length?args[0]:args
+            return this.__members[name].value
+        }
+        else if (name in this.__functions){
+            
+            this.__functions[name].fun.call(this,args);
+        }
+    }
 }
 
 class RemoteAPI  extends APIBase{
-    constructor(jsSchema){
+    constructor(jsSchema,isRemoteRoot,remoteCb){
         super();
+        this.isRemoteRoot = isRemoteRoot;
+        this.remoteCb = remoteCb;
         if(jsSchema.members){
             for(const [k,v] of Object.entries(jsSchema.members)){
-                this.addMember(k,v.type,v.default);
+                this.addMember(k,v.type,{default:v.default,minimum:v.minimum,maximum:v.maximum});
+            }
+        }
+        if(jsSchema.functions){
+            for(const [k,v] of Object.entries(jsSchema.functions)){
+                const spl = v.replace(')','').split('(')
+                const ret = spl[0]
+                const argTypes = spl[1]?spl[1].split(','):[]
+                console.log('adding function ',k,ret,argTypes)
+                this.addFunction(k,()=>{},argTypes,ret);
+            }
+        }
+
+        if(remoteCb){
+            this.parentHierarchyChanged = (path)=>{
+                if(this.remoteCb){
+                    console.log("register relative listener",path.address)
+                    path.root.evts.on("stateChanged",msg=>{
+                        const thisAddr = path.address.slice()
+                        const msgAddr = msg.address.slice()
+                        const commonPart =  msgAddr.splice(0,thisAddr.length);
+                        console.log('relative check addr',thisAddr,commonPart)
+                        if(thisAddr.join('/')==commonPart.join('/')){
+                            msg.address = msgAddr;
+                            console.log("calling relative listener",msgAddr)
+                            this.remoteCb(msg)
+                        }
+                    });
+                }
             }
         }
         
     }
+    
+
     
 }
 
@@ -61,11 +124,14 @@ export class NodeInstance{
         this.api = a;
     }
     
-    
+    setRoot(){
+        this.evts = new EventEmitter()
+        this.isRoot=true;
+    }
     
     getJSONSchema(){
         const res = this.api.getJSONSchema();
-        if(this.childs){
+        if(this.childs && Object.keys(this.childs).length){
             res['childs']  ={}
             const childs  =res['childs'];
             for(const [k,v] of Object.entries(this.childs)){
@@ -77,8 +143,34 @@ export class NodeInstance{
     }
     addChild(name,c){
         this.childs[name] = c;
+        c.parentNode = this;
+        c.nameInParent = name;
+        console.log("adding child",name,c,c.api.parentHierarchyChanged)
+        if(c.api.parentHierarchyChanged){
+            c.api.parentHierarchyChanged(c.getDepthPath())
+        }
     }
     
+    getDepthPath(childName){
+        let insp = this;
+        let lastInsp = insp;
+        const els = []
+        while(insp){
+            lastInsp = insp
+            els.push(insp)
+            insp = insp.parentNode
+        }
+        els.reverse();
+        const root = lastInsp
+        if(!root.isRoot){
+            console.error('!!! path on detached elem',els)
+        }
+        const address = els.map(e=>e.nameInParent);
+        address.splice(0,1);
+        if(childName)address.push(childName)
+        
+        return {address ,root,els};
+    }
     restoreState(s){
         if(this.api){
             const mb = this.api.__members;
@@ -120,14 +212,29 @@ export class NodeInstance{
         return res
     }
     
+    
+    processMsgFromListener(from,addressSpl,args){
+        
+        if(addressSpl && addressSpl.length==1){
+            const cName = addressSpl[0]
+            const value =  this.api.setAnyFrom(from,cName,args)
+            const path = this.getDepthPath(cName);
+            path.root.evts.emit("stateChanged",{from,address:path.address,args:value})
+        }
+        if(addressSpl[0] in this.childs){
+            const k = addressSpl.shift()
+            this.childs[k].processMsgFromListener(from,addressSpl,args)
+        }
+    }
+    
 }
 
-export function createInstanceFromSchema(schema){
+export function createRemoteInstanceFromSchema(schema,isRoot = true,rootCb=undefined){
     const i = new NodeInstance()
-    i.setAPI(new RemoteAPI(schema))
+    i.setAPI(new RemoteAPI(schema,isRoot,rootCb))
     if(schema.childs){
         for(const [k,v] of Object.entries(schema.childs)){
-            i.addChild(k,createInstanceFromSchema(v))
+            i.addChild(k,createRemoteInstanceFromSchema(v,false))
         }
     }
     return i

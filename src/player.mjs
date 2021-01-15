@@ -5,8 +5,8 @@ import {APIBase} from './API.mjs'
 const api = new APIBase()
 api.addFunction("play",()=>{playDefault()},[],undefined)
 api.addFunction("stop",()=>{if(player.running)player.quit()},[],undefined)
-api.addMember('path','s','/home/pi/tst264.mp4')
-api.addMember('volume','f',1)
+api.addMember('path','s',{default:'/home/pi/tst264.mp4'})
+api.addMember('volume','f',{default:1,minimum:0,maximum:3})
 
 //////////
 // logic

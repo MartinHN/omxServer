@@ -21,8 +21,8 @@ function updatePing(timeBeforeNext = 3000){
     if(!connected){
         connected = true;
         events.emit("connected",true);
-        srv.send("/schema",[],srv.lastMsgInfo.address,remotePort)
-        srv.send("/getState",['call'],srv.lastMsgInfo.address,remotePort)
+        send("/schema",[])
+        send("/getState",['call'])
     }
     pingTimeOut = setTimeout(()=>{
         connected = false;
@@ -68,4 +68,9 @@ export function setup(){
 
     
     // osc.open({ port: udpPort })
+}
+
+
+export function send(addr,args){
+    srv.send(addr,args,srv.lastMsgInfo.address,remotePort)
 }

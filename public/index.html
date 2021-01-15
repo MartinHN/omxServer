@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <!-- <script src="./js/json-editor.js"></script> -->
 <script src="./jsSchema"></script>
+<script src="./js/osc-browser.min.js"></script>
 <script src="./js/jsonSchema.js"></script>
+<script src="./wsConf"></script>
 <script src="./js/ws.js"></script>
-<h3> Video Config</h3>
-<button type='button' id='submit'> Save</button>
-<div id='editor_holder'></div>
+<h2> RPI Config</h2>
 
 <div id='rootEl'></div>
 <script>
@@ -15,17 +15,13 @@
     console.log(jsSchema)
     const rootParser = new DOMSchemaContainer()
     rootParser.parse(jsSchema.schema, root);
-    // const editor = new JSONEditor(document.getElementById('editor_holder'), {
-    //     // Require all properties by default
-    //     required_by_default: true,
-    //     // Seed the form with a starting value
-    //     startval: jsSchema.state,
-    //     schema: jsSchema.schema
-    // });
+    rootParser.parseState(jsSchema.state);
+    const wsCon = new WSServerConnection();
+    wsConf.ip = window.location.hostname
+    wsCon.connect(wsConf.ip, wsConf.port);
+    syncObj.on("toServer", msg => {
+        console.log("send", msg);
+        wsCon.send(msg.address, msg.args);
+    })
 
-    // // Hook up the submit button to log to the console
-    // document.getElementById('submit').addEventListener('click', function () {
-    //     // Get the value from the editor
-    //     console.log(editor.getValue());
-    // });
 </script>
