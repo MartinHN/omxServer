@@ -34,7 +34,11 @@ player.on('close',e=>{
 
 function playDefault(){
     playerInstance.setAnyValue('isPlaying',true)
-    player.newSource(conf.path,'local',false,conf.volume);
+    try{ 
+        player.newSource(conf.path,'local',false,conf.volume);
+    }catch(e){
+        console.log('not on a rasp????????',e)
+    }
 }
 
 const playerInstance= new NodeInstance()

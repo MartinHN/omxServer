@@ -132,7 +132,7 @@ export class OSCServerModule {
   }
 
   send(address, args,remoteAddr,remotePort) {
-    console.log('sending msg',{address, args},' to',remoteAddr,remotePort)
+    console.log('sending msg',{address, args},' to',remoteAddr ,remotePort)
     this.udpPort.send({address, args},remoteAddr,remotePort)
   }
 }

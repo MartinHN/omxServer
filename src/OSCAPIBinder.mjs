@@ -46,12 +46,15 @@ export function runOSCServer(r,isMaster){
 
 function initSlave(){
     const oscAnnounce = new OSCServerModule();
-    oscAnnounce.connect("0.0.0.0",announcePort);
-    
-    setInterval(()=>{
+    oscAnnounce.connect("0.0.0.0");
+    const sendAnnounce = ()=>{
         const an = {port:udpPort}
         oscAnnounce.send("/announce",JSON.stringify(an),multicastIp,announcePort)
+    }
+    setInterval(()=>{
+       sendAnnounce()
     },announceTimeSecond*1000)
+    sendAnnounce();
 }
 
 
@@ -65,22 +68,32 @@ function initMaster(){
             announce.uid = announce.ip;
             const last= lastAnnounces[announce.uid];
             if(last){clearTimeout(last);}
+            else{
+                console.log('new announce',announce)
+                const nS = new OSCServerModule();
+                nS.connect("0.0.0.0",announce.port)
+                nS.port = announce.port;
+                nS.ip = announce.ip;
+                slaves[announce.uid] = nS;
+            }
             lastAnnounces[announce.uid] = setTimeout(
                 ()=>{
                     delete slaves[announce.uid];
                 }
                 ,3*1000*announceTimeSecond);
-            }
             
-            const nS = new OSCServerModule();
-            slaves[announce.uid] = nS;
+            
+            
+        }
         });
 
         rootNode.evts.on("stateChanged",msg=>{
             if(msg.isStream)return;
+            if(msg.from==oscRcv)return;
             const sAddr = '/'+msg.address.join('/')
-            for(const s of Object.values(slaves)){
-                s.send(sAddr,msg.args)
+            for(const [k,s] of Object.entries(slaves)){
+                console.log('sending to slave',k,sAddr,msg.args)
+                s.send(sAddr,msg.args,s.ip,s.port)
             }
         })
         

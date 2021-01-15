@@ -23,7 +23,7 @@ function setNewPresence(b){
     hadPresence = b;
     if(rootNode){
         rootNode.processMsgFromListener(masterInstance,["player",hadPresence?"play":"stop"],[]);
-        setTimeout()
+        // rootNode.processMsgFromListener(masterInstance,["light",hadPresence?"on":"off"],[]);
     }
     console.log('-->new presence ',b,!!rootNode);
 }
