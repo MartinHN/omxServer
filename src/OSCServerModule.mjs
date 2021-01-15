@@ -102,9 +102,10 @@ export class OSCServerModule {
     }
     console.warn('try connect',port.options)
     try {
+      
       port.open();
-    } catch {
-      console.error('can\'t connect to ', port.localAddress, port.localPort)
+    } catch (e) {
+      console.error('can\'t connect to ', port.localAddress, port.localPort,e)
     }
     if(this.msgCb){
     this.defferReconnect(port)

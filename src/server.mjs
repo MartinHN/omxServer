@@ -17,21 +17,35 @@ Sensor.setup();
 Sensor.events.on("connected",c=>{
     console.log("connected",c)
 })
-
+let eyeAPI;
 Sensor.events.on('schema',s=>{
     console.log('schema',JSON.stringify(s,undefined,"   "))
     
-    const eye =  createRemoteInstanceFromSchema(s,true,msg=>{
+    eyeAPI =  createRemoteInstanceFromSchema(s,true,msg=>{
         Sensor.send('/'+msg.address.join('/'),msg.args)
     })
-    
-    rootNode.addChild('eye',eye)
+    eyeAPI.api.addStream("mat","pixels",{width:8,height:8})
+    eyeAPI.api.addStream("presence","b")
+    eyeAPI.api.addStream("presenceSize","i")
+
+    rootNode.addChild('eye',eyeAPI)
     console.log('global Schema',JSON.stringify(rootNode.getJSONSchema(),undefined,"  "));
     
 })
-
+Sensor.events.on("osc",msg=>{
+    if(!eyeAPI)return;
+    const strName = msg.address.substr(1);
+    if(strName in eyeAPI.api.__streams){
+        msg.args.shift()// remove uuid
+        if(msg.address!="/mat")
+        console.log("passing stream",msg.address,msg.args)
+        rootNode.evts.emit('stateChanged',{address:['eye',strName],args:msg.args,isStream:true})
+    }
+    else
+    console.log("Sensor unknown osc",msg)
+})
 Sensor.events.on('state',s=>{
-    console.log('state',JSON.stringify(s,undefined,"   "))
+    console.log('sensor state',JSON.stringify(s,undefined,"   "))
     const eI = rootNode.childs['eye']
     if(eI){
         eI.restoreState(s)
@@ -39,13 +53,14 @@ Sensor.events.on('state',s=>{
     console.log('global State',rootNode.getState());
 })
 
-// const conf  = loadConf();
+const lastConf  = loadConf();
+
 // conf.volume=1
 // console.log('conf',conf);
-// rootNode.restoreState(conf)
+rootNode.restoreState(lastConf)
 const nConf = rootNode.getState()
-console.log('new', nConf)
-saveConf(nConf);
+// console.log('new conf', nConf)
+// saveConf(nConf);
 
 // OSC
 regRootNode(rootNode);
@@ -120,7 +135,7 @@ wss.on("connection",socket=>{
     const cb = msg=>{
         // console.log('WSSS state changed',msg)
         if(!msg.from || (msg.from.uuid!=listenerInstance.uuid)){
-            console.log('WSSS sending back to client',msg)
+            // console.log('WSSS sending back to client',msg)
             socketPort.send({address:'/'+msg.address.join('/'),args:msg.args})
         }
     }

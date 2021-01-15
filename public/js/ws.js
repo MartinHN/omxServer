@@ -20,7 +20,8 @@ class WSServerConnection{
         })
 
         this.oscPort.on('message',msg=>{
-            console.log('ws message',msg)
+            // console.log('ws message',msg)
+            syncObj.emit("fromServer",msg)
         })
 
         this.oscPort.open();

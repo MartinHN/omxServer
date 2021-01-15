@@ -32,26 +32,35 @@ function updatePing(timeBeforeNext = 3000){
 
 const srv = new OSCServerModule(function (msg) {
     // console.log('msg',msg);
-    if(msg.address == "/mat"){
-        for(let i = 0 ; i < 64 ; i++){
-            therm[i] = msg.args[i+1]
-        }
-        events.emit("therm",therm);
-        console.log("mat rcvd",therm);
-    }
-    else if(msg.address == "/ping"){
+    // if(msg.address == "/mat"){
+    //     msg.args.shift() // remove id
+    //     events.emit("osc",msg)
+    //     // console.log("mat rcvd",therm);
+    // }
+    if(msg.address == "/ping"){
         const dt = parseInt(msg.args[0]) || 3000;
         remotePort = parseInt(msg.args[1]) || 3000; 
         updatePing(dt*2);
     }
     else if(msg.address == "/schema"){
-        events.emit("schema",JSON.parse(msg.args[0]))
+        try{
+            events.emit("schema",JSON.parse(msg.args[0]));
+        }
+        catch(e){
+            console.error("state not parsed",e);
+        }
     }
     else if(msg.address == "/getState"){
-        events.emit("state",JSON.parse(msg.args[0]))
+        try{
+            events.emit("state",JSON.parse(msg.args[0]))
+        }
+        catch(e){
+            console.error("state not parsed",e)
+        }
     }
     else{
-        console.log(' received msg',msg)
+        events.emit("osc",msg)
+        // console.log(' Sensor unknown received msg',msg)
     }
     
 })
@@ -65,7 +74,7 @@ export function setup(){
     //     console.log('rcvd')
     // })
     srv.connect(multicastIp,sensorPort);
-
+    
     
     // osc.open({ port: udpPort })
 }

@@ -1,10 +1,11 @@
-import {APIBase} from './API.mjs' 
+import {NodeInstance,APIBase} from './API.mjs' 
 //////////////
 // API
 
 const api = new APIBase()
 api.addFunction("play",()=>{playDefault()},[],undefined)
 api.addFunction("stop",()=>{if(player.running)player.quit()},[],undefined)
+api.addStream("isPlaying",'b',{default:false})
 api.addMember('path','s',{default:'/home/pi/tst264.mp4'})
 api.addMember('volume','f',{default:1,minimum:0,maximum:3})
 
@@ -27,16 +28,16 @@ try{
 // Create an instance of the player with the source.
 var player = Omx();
 player.on('close',e=>{
-    console.log("ended")
+    console.log("player ended")
+    playerInstance.setAnyValue('isPlaying',false)
 })
 
 function playDefault(){
+    playerInstance.setAnyValue('isPlaying',true)
     player.newSource(conf.path,'local',false,conf.volume);
 }
 
+const playerInstance= new NodeInstance()
+playerInstance.setAPI(api);
 
-
-export function getAPI(){
-    
-    return api
-}
+export default playerInstance ;

@@ -11,12 +11,17 @@ function typeToJSONType(v){
 export class APIBase{
     __functions = {}
     __members = {}
+    __streams = {}
     
     constructor(){
         
     }
     addFunction(name, fun, argTypes,retType){
         this.__functions[name] ={fun,argTypes,retType}
+    }
+    
+    addStream(name, type,opts){
+        this.__streams[name] ={type,opts}
     }
     
     addMember(name,type,opts){
@@ -35,6 +40,13 @@ export class APIBase{
                 members[k] = {type:typeToJSONType(v.type),minimum:v.opts.minimum,maximum:v.opts.maximum}
             }
             res.members  = members
+        }
+        if(this.__streams && Object.keys(this.__streams).length){
+            const streams = {}
+            for(const [k,v] of Object.entries(this.__streams)){
+                streams[k] = {type:v.type,...v.opts}
+            }
+            res.streams  = streams
         }
         if(this.__functions && Object.keys(this.__functions).length){
             const funs = {}
@@ -60,10 +72,14 @@ export class APIBase{
     }
     
     setAnyFrom(from,name,args){
-        console.log("calling or setting ",name)
+        // console.log("calling or setting ",name)
         if(name in this.__members){
             this.__members[name].value = args.length?args[0]:args
             return this.__members[name].value
+        }
+       else  if(name in this.__streams){
+            this.__streams[name].value = args.length?args[0]:args
+            return this.__streams[name].value
         }
         else if (name in this.__functions){
             
@@ -79,7 +95,7 @@ class RemoteAPI  extends APIBase{
         this.remoteCb = remoteCb;
         if(jsSchema.members){
             for(const [k,v] of Object.entries(jsSchema.members)){
-                this.addMember(k,v.type,{default:v.default,minimum:v.minimum,maximum:v.maximum});
+                this.addMember(k,v.type,{default:v.default,minimum:v.min,maximum:v.max});
             }
         }
         if(jsSchema.functions){
@@ -91,16 +107,17 @@ class RemoteAPI  extends APIBase{
                 this.addFunction(k,()=>{},argTypes,ret);
             }
         }
-
+        
         if(remoteCb){
             this.parentHierarchyChanged = (path)=>{
                 if(this.remoteCb){
                     console.log("register relative listener",path.address)
                     path.root.evts.on("stateChanged",msg=>{
+                        if(msg.isStream){return}
                         const thisAddr = path.address.slice()
                         const msgAddr = msg.address.slice()
                         const commonPart =  msgAddr.splice(0,thisAddr.length);
-                        console.log('relative check addr',thisAddr,commonPart)
+                        // console.log('relative check addr',thisAddr,commonPart)
                         if(thisAddr.join('/')==commonPart.join('/')){
                             msg.address = msgAddr;
                             console.log("calling relative listener",msgAddr)
@@ -113,7 +130,7 @@ class RemoteAPI  extends APIBase{
         
     }
     
-
+    
     
 }
 
@@ -212,14 +229,16 @@ export class NodeInstance{
         return res
     }
     
-    
+    setAnyValue(cName,args,from){
+        const value =  this.api.setAnyFrom(from,cName,args)
+        const path = this.getDepthPath(cName);
+        path.root.evts.emit("stateChanged",{from,address:path.address,args:value})
+    }
     processMsgFromListener(from,addressSpl,args){
         
         if(addressSpl && addressSpl.length==1){
             const cName = addressSpl[0]
-            const value =  this.api.setAnyFrom(from,cName,args)
-            const path = this.getDepthPath(cName);
-            path.root.evts.emit("stateChanged",{from,address:path.address,args:value})
+            this.setAnyValue(cName,args,from);
         }
         if(addressSpl[0] in this.childs){
             const k = addressSpl.shift()
