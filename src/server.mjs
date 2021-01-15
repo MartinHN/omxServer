@@ -1,18 +1,22 @@
 import {loadConf,saveConf,setBaseDir} from "./persistent.mjs"
-import {runOSCServer,regRootNode} from './OSCAPIBinder.mjs'
+import {runOSCServer} from './OSCAPIBinder.mjs'
 import {createRemoteInstanceFromSchema} from './API.mjs'
 import * as Sensor from './Sensor.mjs'
 import rootNode from './rootNode.mjs'
 import http from 'http'
-import {readFileSync} from 'fs'
+import {readFileSync,existsSync} from 'fs'
 import { execSync } from "child_process"
 import WebSocket  from "ws";
 import osc from 'osc'
+import masterLogic from './MasterLogic.mjs'
 
 const proc =  execSync("uname -a").toString()
 const isPi = proc.includes("armv7")
 const thisPath = isPi?"/home/pi/omxServer":"/home/tinmar/Work/mili/omxServer" 
 setBaseDir(thisPath)
+const isMaster = isPi ?existsSync("/boot/isMaster"):true
+console.log('starting as ',isMaster?'master':'slave')
+if(isMaster){
 Sensor.setup();
 Sensor.events.on("connected",c=>{
     console.log("connected",c)
@@ -20,7 +24,6 @@ Sensor.events.on("connected",c=>{
 let eyeAPI;
 Sensor.events.on('schema',s=>{
     console.log('schema',JSON.stringify(s,undefined,"   "))
-    
     eyeAPI =  createRemoteInstanceFromSchema(s,true,msg=>{
         Sensor.send('/'+msg.address.join('/'),msg.args)
     })
@@ -37,8 +40,8 @@ Sensor.events.on("osc",msg=>{
     const strName = msg.address.substr(1);
     if(strName in eyeAPI.api.__streams){
         msg.args.shift()// remove uuid
-        if(msg.address!="/mat")
-        console.log("passing stream",msg.address,msg.args)
+        // if(msg.address!="/mat")
+        // console.log("passing stream",msg.address,msg.args)
         rootNode.evts.emit('stateChanged',{address:['eye',strName],args:msg.args,isStream:true})
     }
     else
@@ -52,7 +55,7 @@ Sensor.events.on('state',s=>{
     }
     console.log('global State',rootNode.getState());
 })
-
+}
 const lastConf  = loadConf();
 
 // conf.volume=1
@@ -63,8 +66,8 @@ const nConf = rootNode.getState()
 // saveConf(nConf);
 
 // OSC
-regRootNode(rootNode);
-runOSCServer();
+
+runOSCServer(rootNode);
 
 
 // http
@@ -162,3 +165,14 @@ wss.on("listen",e=>{
 wss.on("message",e=>{
     console.log(e)
 })
+
+
+// mainLogic
+if(isMaster){
+
+masterLogic.setup(rootNode);
+rootNode.addChild('logic',masterLogic)
+}
+else{
+
+}

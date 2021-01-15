@@ -72,7 +72,7 @@ export class APIBase{
     }
     
     setAnyFrom(from,name,args){
-        // console.log("calling or setting ",name)
+        console.log("calling or setting ",name)
         if(name in this.__members){
             this.__members[name].value = args.length?args[0]:args
             return this.__members[name].value
@@ -82,8 +82,10 @@ export class APIBase{
             return this.__streams[name].value
         }
         else if (name in this.__functions){
-            
             this.__functions[name].fun.call(this,args);
+        }
+        else{
+            console.error('not found member/function',name)
         }
     }
 }
@@ -240,9 +242,11 @@ export class NodeInstance{
             const cName = addressSpl[0]
             this.setAnyValue(cName,args,from);
         }
-        if(addressSpl[0] in this.childs){
+        else if(addressSpl[0] in this.childs){
             const k = addressSpl.shift()
             this.childs[k].processMsgFromListener(from,addressSpl,args)
+        }else{
+            console.error(addressSpl[0],'not found in',this.childs)
         }
     }
     

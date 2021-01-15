@@ -1,6 +1,6 @@
 import  os  from 'os';
 import  osc from 'osc';
-const getIPAddresses = () => {
+export const getIPAddresses = () => {
   const interfaces = os.networkInterfaces();
   const ipAddresses = new Array();
 

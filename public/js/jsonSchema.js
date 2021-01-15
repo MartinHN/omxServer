@@ -235,7 +235,7 @@ class DOMSchemaContainer{
                 const cc = document.createElement("span");
                 cc.setAttribute('style','display:flex')
                 const nAddr = rootAddr?[...rootAddr,k]:[k]
-                if(v.retType && v.retType!="void"){
+                if(v.retType && v.retType!="void" && v.retType!="v"){
                     this.widgs[k] = addWidget(cc,{type:v.retType},"",nAddr);
                 }
                 

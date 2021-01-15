@@ -22,7 +22,7 @@ function updatePing(timeBeforeNext = 3000){
         connected = true;
         events.emit("connected",true);
         send("/schema",[])
-        send("/getState",['call'])
+        setTimeout(()=>{send("/getState",['call'])},1000);
     }
     pingTimeOut = setTimeout(()=>{
         connected = false;
@@ -30,13 +30,8 @@ function updatePing(timeBeforeNext = 3000){
     },timeBeforeNext)
 }
 
-const srv = new OSCServerModule(function (msg) {
+const srv = new OSCServerModule( (msg)=> {
     // console.log('msg',msg);
-    // if(msg.address == "/mat"){
-    //     msg.args.shift() // remove id
-    //     events.emit("osc",msg)
-    //     // console.log("mat rcvd",therm);
-    // }
     if(msg.address == "/ping"){
         const dt = parseInt(msg.args[0]) || 3000;
         remotePort = parseInt(msg.args[1]) || 3000; 
@@ -47,7 +42,7 @@ const srv = new OSCServerModule(function (msg) {
             events.emit("schema",JSON.parse(msg.args[0]));
         }
         catch(e){
-            console.error("state not parsed",e);
+            console.error("schema not parsed",msg.args[0],e);
         }
     }
     else if(msg.address == "/getState"){
