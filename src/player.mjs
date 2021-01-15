@@ -31,6 +31,10 @@ player.on('close',e=>{
     console.log("player ended")
     playerInstance.setAnyValue('isPlaying',false)
 })
+player.on('error',e=>{
+    console.log("player error")
+    playerInstance.setAnyValue('isPlaying',false)
+})
 
 function playDefault(){
     playerInstance.setAnyValue('isPlaying',true)

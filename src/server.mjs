@@ -14,7 +14,7 @@ const proc =  execSync("uname -a").toString()
 const isPi = proc.includes("armv7")
 const thisPath = isPi?"/home/pi/omxServer":"/home/tinmar/Work/mili/omxServer" 
 setBaseDir(thisPath)
-const isMaster = isPi ?existsSync("/boot/isMaster"):true
+const isMaster = isPi ?existsSync("/boot/isMaster"):false
 console.log('starting as ',isMaster?'master':'slave')
 if(isMaster){
 Sensor.setup();
