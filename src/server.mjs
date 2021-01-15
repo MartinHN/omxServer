@@ -67,7 +67,7 @@ const nConf = rootNode.getState()
 
 // OSC
 
-runOSCServer(rootNode);
+runOSCServer(rootNode,isMaster);
 
 
 // http

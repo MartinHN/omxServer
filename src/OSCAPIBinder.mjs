@@ -66,7 +66,9 @@ function initMaster(){
             const last= lastAnnounces[announce.uid];
             if(last){clearTimeout(last);}
             lastAnnounces[announce.uid] = setTimeout(
-                ()=>{delete slaves[announce.uid];}
+                ()=>{
+                    delete slaves[announce.uid];
+                }
                 ,3*1000*announceTimeSecond);
             }
             
