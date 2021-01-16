@@ -121,9 +121,9 @@ class RemoteAPI  extends APIBase{
                         const commonPart =  msgAddr.splice(0,thisAddr.length);
                         // console.log('relative check addr',thisAddr,commonPart)
                         if(thisAddr.join('/')==commonPart.join('/')){
-                            msg.address = msgAddr;
+                            const relMsg = {address:msgAddr ,args:msg.args};
                             console.log("calling relative listener",msgAddr)
-                            this.remoteCb(msg)
+                            this.remoteCb(relMsg)
                         }
                     });
                 }

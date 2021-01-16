@@ -167,7 +167,7 @@ wss.on("connection",socket=>{
         rootNode.processMsgFromListener(listenerInstance,msg.address.substr(1).split('/'),msg.args)
     })
     const cb = msg=>{
-        // console.log('WSSS state changed',msg)
+        console.log('WSSS state changed',msg.address)
         if(!msg.from || (msg.from.uuid!=listenerInstance.uuid)){
             // console.log('WSSS sending back to client',msg)
             socketPort.send({address:'/'+msg.address.join('/'),args:msg.args})
