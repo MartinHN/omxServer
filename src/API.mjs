@@ -13,8 +13,8 @@ export class APIBase{
     __members = {}
     __streams = {}
     
-    constructor(){
-        
+    constructor(name){
+        this.apiName = name
     }
     addFunction(name, fun, argTypes,retType){
         this.__functions[name] ={fun,argTypes,retType}
@@ -55,6 +55,7 @@ export class APIBase{
                 if(v.argTypes && v.argTypes.length){
                     funs[k].argTypes = v.argTypes.map(typeToJSONType)
                 }
+                
             }
             res.functions = funs;
         }
@@ -72,17 +73,17 @@ export class APIBase{
     }
     
     setAnyFrom(from,name,args){
-        console.log("calling or setting ",name)
+        // console.log("calling or setting ",name)
         if(name in this.__members){
             this.__members[name].value = args.length?args[0]:args
             return this.__members[name].value
         }
-       else  if(name in this.__streams){
-            this.__streams[name].value = args.length?args[0]:args
+        else  if(name in this.__streams){
+            this.__streams[name].value = args
             return this.__streams[name].value
         }
         else if (name in this.__functions){
-            this.__functions[name].fun.call(this,args);
+            return this.__functions[name].fun.call(this,args);
         }
         else{
             console.error('not found member/function',name)
@@ -91,29 +92,46 @@ export class APIBase{
 }
 
 class RemoteAPI  extends APIBase{
-    constructor(jsSchema,isRemoteRoot,remoteCb){
-        super();
+    constructor(apiName,jsSchema,isRemoteRoot,remoteCb){
+        super(apiName);
         this.isRemoteRoot = isRemoteRoot;
         this.remoteCb = remoteCb;
         if(jsSchema.members){
             for(const [k,v] of Object.entries(jsSchema.members)){
-                this.addMember(k,v.type,{default:v.default,minimum:v.min,maximum:v.max});
+                const minimum = v.min!=undefined?v.min:v.minimum
+                const maximum = v.max!=undefined?v.max:v.maximum
+                this.addMember(k,v.type,{default:v.default,minimum,maximum});
             }
         }
         if(jsSchema.functions){
             for(const [k,v] of Object.entries(jsSchema.functions)){
-                const spl = v.replace(')','').split('(')
-                const ret = spl[0]
-                const argTypes = spl[1]?spl[1].split(','):[]
-                console.log('adding function ',k,ret,argTypes)
-                this.addFunction(k,()=>{},argTypes,ret);
+                let f ={}
+                if(typeof(v)==="string"){
+                    const spl = v.replace(')','').split('(')
+                    f.ret = spl[0]
+                    f.argTypes = spl[1]?spl[1].split(','):[]
+                    
+                }else{
+                    f = v
+                }
+                // console.log('adding function ',k,f.ret,f.argTypes)
+                this.addFunction(k,()=>{},f.argTypes,f.ret);
+            }
+        }
+        
+        if(jsSchema.streams){
+            for(const [k,v] of Object.entries(jsSchema.streams)){
+                const minimum = v.min!=undefined?v.min:v.minimum
+                const maximum = v.max!=undefined?v.max:v.maximum
+                this.addStream(k,v.type,{default:v.default,minimum,maximum});
+                // console.log('adding stream ',k,v.type)
             }
         }
         
         if(remoteCb){
             this.parentHierarchyChanged = (path)=>{
                 if(this.remoteCb){
-                    console.log("register relative listener",path.address)
+                    // console.log("register relative listener",path.address)
                     path.root.evts.on("stateChanged",msg=>{
                         if(msg.isStream){return}
                         const thisAddr = path.address.slice()
@@ -121,8 +139,8 @@ class RemoteAPI  extends APIBase{
                         const commonPart =  msgAddr.splice(0,thisAddr.length);
                         // console.log('relative check addr',thisAddr,commonPart)
                         if(thisAddr.join('/')==commonPart.join('/')){
-                            const relMsg = {address:msgAddr ,args:msg.args};
-                            console.log("calling relative listener",msgAddr)
+                            const relMsg = {address:msgAddr ,args:msg.args,from:msg.from};
+                            // console.log("calling relative listener",msgAddr)
                             this.remoteCb(relMsg)
                         }
                     });
@@ -164,7 +182,7 @@ export class NodeInstance{
         this.childs[name] = c;
         c.parentNode = this;
         c.nameInParent = name;
-        console.log("adding child",name)
+        // console.log("adding child",name)
         if(c.api.parentHierarchyChanged){
             c.api.parentHierarchyChanged(c.getDepthPath())
         }
@@ -234,6 +252,7 @@ export class NodeInstance{
     setAnyValue(cName,args,from){
         const value =  this.api.setAnyFrom(from,cName,args)
         const path = this.getDepthPath(cName);
+        // console.log("sending state change from",from.instanceName,path.address)
         path.root.evts.emit("stateChanged",{from,address:path.address,args:value})
     }
     processMsgFromListener(from,addressSpl,args){
@@ -249,15 +268,29 @@ export class NodeInstance{
             console.error(addressSpl[0],'not found in',this.childs)
         }
     }
+    getChildsWithAPIType(t){
+        let res = []
+        for(const c of Object.values(this.childs)){
+            const cAPIs = c.getChildsWithAPIType(t);
+            if(cAPIs.length)
+                res = res.concat(cAPIs)
+        }
+        if(this.api.apiName==t){
+            res.push(this);
+        }
+        return res;
+        
+    }
     
 }
 
-export function createRemoteInstanceFromSchema(schema,isRoot = true,rootCb=undefined){
+export function createRemoteInstanceFromSchema(apiName,schema,isRoot = true,rootCb=undefined){
     const i = new NodeInstance()
-    i.setAPI(new RemoteAPI(schema,isRoot,rootCb))
+    // console.log('new schema',schema)
+    i.setAPI(new RemoteAPI(apiName,schema,isRoot,rootCb))
     if(schema.childs){
         for(const [k,v] of Object.entries(schema.childs)){
-            i.addChild(k,createRemoteInstanceFromSchema(v,false))
+            i.addChild(k,createRemoteInstanceFromSchema(apiName+"_"+k,v,false))
         }
     }
     return i

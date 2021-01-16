@@ -1,14 +1,14 @@
 class WSServerConnection{
     constructor(){
-
+        
     }
-
+    
     connect(ip,port){
         
         this.oscPort = new osc.WebSocketPort({
             url: `ws://${ip}:${port}`
         });
-
+        
         this.oscPort.on('open',()=>{
             console.log('ws open')
         })
@@ -18,18 +18,25 @@ class WSServerConnection{
         this.oscPort.on('close',()=>{
             console.log('ws close')
         })
-
+        
         this.oscPort.on('message',msg=>{
-            // console.log('ws message',msg)
-            syncObj.emit("fromServer",msg)
+            if(msg.address=="/schema"){
+                syncObj.emit("newSchema",JSON.parse(msg.args[0]));
+            }
+            else if(msg.address=="/state"){
+                syncObj.emit("newState",JSON.parse(msg.args[0]));
+            }
+            else{
+                syncObj.emit("fromServer",msg)
+            }
         })
-
+        
         this.oscPort.open();
-
+        
     }
-
-     send(address,args){
-         console.log('sending ',address,args)
+    
+    send(address,args){
+        console.log('sending ',address,args)
         this.oscPort.send({address,args})
     }
 }

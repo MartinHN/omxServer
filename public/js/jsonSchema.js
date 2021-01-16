@@ -170,7 +170,6 @@ function addWidget(domP,typeObj,name,addr){
         el.onchange = ()=>{wsync.send(el.value);}
     }
     else if(t=='t' || t=="trigger"){
-        console.log('trig',name)
         el = document.createElement("input");
         el.setAttribute("type", "button");
         el.setAttribute("value",name);
@@ -269,6 +268,7 @@ class DOMSchemaContainer{
         base.appendChild(c)
     }
     parseState(state,addr){
+        console.log("parsing state",addr)
         addr = addr || []
         for(const [k,v] of Object.entries(state))
         {

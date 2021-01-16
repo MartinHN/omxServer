@@ -52,9 +52,10 @@ export class OSCServerModule {
       remoteAddress: ip,
       remotePort: this.msgCb ? undefined : port
     });
-    console.log(`listening on ${ip} : ${port}`);
+
     this.udpPort = udpPort;
     udpPort.on('ready', () => {
+      udpPort.isConnected = true;
       clearTimeout(udpPort.timeout)
       const ipAddresses = getIPAddresses();
       console.log('Listening for OSC over UDP.');
@@ -75,7 +76,7 @@ export class OSCServerModule {
       this.defferReconnect(udpPort)
     });
     
-    this.tryReConnect(udpPort)
+    this.tryReConnect(udpPort,true)
   }
 
   close(){
@@ -103,12 +104,13 @@ export class OSCServerModule {
     clearTimeout(port.timeout)
     port.timeout = setTimeout(this.tryReConnect.bind(this, port), 1000);
   }
-  tryReConnect(port) {
+  tryReConnect(port,firstAttempt) {
     if (port.isConnected) {
       clearTimeout(this.timeout)
       return;
     }
-    console.warn('try connect',port.options)
+    if(!firstAttempt)
+    console.warn('try connect',port.options.localAddress,port.options.localPort)
     try {
       
       port.open();
@@ -140,7 +142,10 @@ export class OSCServerModule {
   }
 
   send(address, args,remoteAddr,remotePort) {
+    if (this.udpPort.isConnected) {
+    if(address!="/announce")
     console.log('sending msg',{address, args},' to',remoteAddr ,remotePort)
     this.udpPort.send({address, args},remoteAddr,remotePort)
   }
+}
 }

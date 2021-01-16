@@ -15,7 +15,10 @@ class Endpoint extends EventEmitter{
         this.epid = announce.epid;
         this.type = announce.type;
         this.id = announce.id;
-        
+        this.name = this.type;
+        if(this.id){
+            this.name+="_"+this.id;
+        }
         this.epOSC= new OSCServerModule((msg,time,info)=>{
             this.handleMsg(msg,time,info)
         });
@@ -41,7 +44,7 @@ class Endpoint extends EventEmitter{
         //},1000);
     }
     send(addr,args){
-        this.epOSC.send(addr,args,this.remoteIp,this.remotePort);
+        this.epOSC.send(addr,args===undefined?[]:args,this.remoteIp,this.remotePort);
     }
     
     handleMsg(msg,time,info){
@@ -78,7 +81,11 @@ class Endpoint extends EventEmitter{
             }
         }
         else{
-            this.emit("message",msg);
+            console.log("message from endpoint",msg.address)
+            const nMsg = {...msg}
+            nMsg.address =msg.address.substr(1).split('/');
+            console.log("addrSpl",nMsg.address)
+            this.emit("message",nMsg);
         }
     }
 }
@@ -113,7 +120,7 @@ class EndpointWatcher extends EventEmitter{
             
             curEp.timeout = setTimeout(
                 ()=>{
-                    this.emit("removed",this.endpoints[epUUID] );
+                    this.emit("removed",curEp );
                     this.endpoints[epUUID].close();
                     delete this.endpoints[epUUID];
                 }, 3*1000*announceTimeSecond);
@@ -127,15 +134,17 @@ class EndpointWatcher extends EventEmitter{
                 // for now we doesnt differenciate them
                 const epMulticastingList =  Object.values(this.endpoints).filter(e=>e.remoteIp==info.address);
                 if(epMulticastingList.length){
-                    msg.fromMulticast=true;
+                    const nMsg = {...msg}
+                    nMsg.address =msg.address.substr(1).split('/');
+                    nMsg.fromMulticast=true;
                     for(const epMulticasting of epMulticastingList){
-                        epMulticasting.emit("message",msg)
-                        this.emit("endpointMsg",{ep:epMulticasting,msg})
+                        epMulticasting.emit("message",nMsg)
+                        this.emit("endpointMsg",{ep:epMulticasting,nMsg})
                     }
                 }
                 
                 else{
-                    console.error('unknown endpoint multicasting',info,this.endpoints,msg.address);}
+                    console.error('unknown endpoint multicasting',info,msg.address);}
                     
                 }
             }
