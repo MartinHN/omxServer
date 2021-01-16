@@ -9,7 +9,6 @@ import { execSync } from "child_process"
 import WebSocket  from "ws";
 import osc from 'osc'
 import EndpointWatcher from './EndpointWatcher.mjs'
-import * as Light from './Light.mjs'
 import masterLogic from './MasterLogic.mjs'
 
 const proc =  execSync("uname -a").toString()
