@@ -8,6 +8,8 @@ import {readFileSync,existsSync} from 'fs'
 import { execSync } from "child_process"
 import WebSocket  from "ws";
 import osc from 'osc'
+import EndpointWatcher from './EndpointWatcher.mjs'
+import * as Light from './Light.mjs'
 import masterLogic from './MasterLogic.mjs'
 
 const proc =  execSync("uname -a").toString()
@@ -16,46 +18,75 @@ const thisPath = isPi?"/home/pi/omxServer":"/home/tinmar/Work/mili/omxServer"
 setBaseDir(thisPath)
 const isMaster = isPi ?existsSync("/boot/isMaster"):false
 console.log('starting as ',isMaster?'master':'slave')
-if(isMaster){
-Sensor.setup();
-Sensor.events.on("connected",c=>{
-    console.log("connected",c)
-})
-let eyeAPI;
-Sensor.events.on('schema',s=>{
-    console.log('schema',JSON.stringify(s,undefined,"   "))
-    eyeAPI =  createRemoteInstanceFromSchema(s,true,msg=>{
-        Sensor.send('/'+msg.address.join('/'),msg.args)
-    })
-    eyeAPI.api.addStream("mat","pixels",{width:8,height:8})
-    eyeAPI.api.addStream("presence","b")
-    eyeAPI.api.addStream("presenceSize","i")
-
-    rootNode.addChild('eye',eyeAPI)
-    console.log('global Schema',JSON.stringify(rootNode.getJSONSchema(),undefined,"  "));
+EndpointWatcher.on("added",e=>{
     
 })
-Sensor.events.on("osc",msg=>{
-    if(!eyeAPI)return;
-    const strName = msg.address.substr(1);
-    if(strName in eyeAPI.api.__streams){
-        msg.args.shift()// remove uuid
-        // if(msg.address!="/mat")
-        // console.log("passing stream",msg.address,msg.args)
-        rootNode.evts.emit('stateChanged',{address:['eye',strName],args:msg.args,isStream:true})
-    }
-    else
-    console.log("Sensor unknown osc",msg)
+EndpointWatcher.on("removed",e=>{
+    console.error("endpoint removed",e.type)
 })
-Sensor.events.on('state',s=>{
-    console.log('sensor state',JSON.stringify(s,undefined,"   "))
-    const eI = rootNode.childs['eye']
-    if(eI){
-        eI.restoreState(s)
+EndpointWatcher.on("schema",e=>{
+    if(isMaster){
+        console.log("auto adding schema",e.ep.type)
+        const nI= createRemoteInstanceFromSchema(e.schema,true,msg=>{
+            console.log('sending back ',msg)
+            e.ep.send('/'+msg.address.join('/'),msg.args)
+        })
+        if(e.ep.type=="eye"){
+            nI.api.addStream("mat","pixels",{width:8,height:8})
+            nI.api.addStream("presence","b")
+            nI.api.addStream("presenceSize","i")
+            e.ep.on("message" , msg=>{
+                const strName = msg.address.substr(1);
+                if(strName in nI.api.__streams){
+                    msg.args.shift()// remove uuid
+                    // if(msg.address!="/mat")
+                    // console.log("passing stream",msg.address,msg.args)
+                    rootNode.evts.emit('stateChanged',{address:['eye',strName],args:msg.args,isStream:true})
+                }
+                else
+                console.log("Sensor unknown osc",msg)
+            })
+        }
+        rootNode.addChild(e.ep.type,nI);
     }
-    console.log('global State',rootNode.getState());
 })
-}
+EndpointWatcher.on("state",e=>{
+    console.log('rcvd state',e.ep.type,e.state)
+    const s = e.state;
+        const eI = rootNode.childs[e.ep.type]
+        if(eI){
+            eI.restoreState(s)
+        }
+        else{
+            console.error("no node for state",e.ep.type)
+        }
+        // console.log('global State',rootNode.getState());
+    // Sensor.events.on('state',s=>{
+    //     console.log('sensor state',JSON.stringify(s,undefined,"   "))
+    //     const eI = rootNode.childs['eye']
+    //     if(eI){
+    //         eI.restoreState(s)
+    //     }
+    //     console.log('global State',rootNode.getState());
+    // })
+})
+EndpointWatcher.on("endpointMsg",e=>{
+    // if(!e.ep.type)return;
+    //     const strName = msg.address.substr(1);
+    //     if(strName in eyeAPI.api.__streams){
+    //         msg.args.shift()// remove uuid
+    //         // if(msg.address!="/mat")
+    //         // console.log("passing stream",msg.address,msg.args)
+    //         rootNode.evts.emit('stateChanged',{address:['eye',strName],args:msg.args,isStream:true})
+    //     }
+    //     else
+    //     console.log("Sensor unknown osc",msg)
+})
+EndpointWatcher.setup()
+
+
+/// Sensor specifiv
+
 const lastConf  = loadConf();
 
 // conf.volume=1
@@ -126,7 +157,7 @@ const wss = new WebSocket.Server({
 wss.on("connection",socket=>{
     console.log("wss connected")
     
-  
+    
     const socketPort = new osc.WebSocketPort({
         socket
     });
@@ -143,7 +174,7 @@ wss.on("connection",socket=>{
         }
     }
     rootNode.evts.on("stateChanged",cb)
-
+    
     socket.on("close",e=>{
         console.error("closed")
         rootNode.evts.off("stateChanged",cb)
@@ -169,10 +200,10 @@ wss.on("message",e=>{
 
 // mainLogic
 if(isMaster){
-
-masterLogic.setup(rootNode);
-rootNode.addChild('logic',masterLogic)
+    
+    masterLogic.setup(rootNode);
+    rootNode.addChild('logic',masterLogic)
 }
 else{
-
+    
 }

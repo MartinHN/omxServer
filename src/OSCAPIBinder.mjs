@@ -81,9 +81,7 @@ function initMaster(){
                     delete slaves[announce.uid];
                 }
                 ,3*1000*announceTimeSecond);
-            
-            
-            
+
         }
         });
 

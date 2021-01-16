@@ -164,7 +164,7 @@ export class NodeInstance{
         this.childs[name] = c;
         c.parentNode = this;
         c.nameInParent = name;
-        console.log("adding child",name,c,c.api.parentHierarchyChanged)
+        console.log("adding child",name)
         if(c.api.parentHierarchyChanged){
             c.api.parentHierarchyChanged(c.getDepthPath())
         }

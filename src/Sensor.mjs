@@ -2,7 +2,7 @@ import {OSCServerModule} from "./OSCServerModule.mjs"
 import EventEmitter from "events"
 
 const multicastIp = "230.1.1.1"
-const sensorPort = 4000;
+const sensorPort = 4001;
 const toSensorPort = 3000;
 
 export const events = new EventEmitter();
@@ -68,7 +68,7 @@ export function setup(){
     // socket.bind(udpPort,'0.0.0.0',()=>{
     //     console.log('rcvd')
     // })
-    srv.connect(multicastIp,sensorPort);
+    // srv.connect(multicastIp,sensorPort);
     
     
     // osc.open({ port: udpPort })

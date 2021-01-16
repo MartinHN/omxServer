@@ -38,11 +38,8 @@ player.on('error',e=>{
 
 function playDefault(){
     playerInstance.setAnyValue('isPlaying',true)
-    try{ 
-        player.newSource(conf.path,'local',false,conf.volume);
-    }catch(e){
-        console.log('not on a rasp????????',e)
-    }
+    player.newSource(conf.path,'local',false,conf.volume);
+    
 }
 
 const playerInstance= new NodeInstance()

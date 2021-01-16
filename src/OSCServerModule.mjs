@@ -78,6 +78,14 @@ export class OSCServerModule {
     this.tryReConnect(udpPort)
   }
 
+  close(){
+    if(this.udpPort){
+    this.udpPort.close();
+  }
+  else{
+    console.error("can't close")
+  }
+  }
   disconnect(){
     if(this.udpPort){
       console.error("disconnect",this.udpPort);
