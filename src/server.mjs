@@ -1,7 +1,7 @@
 import {loadConf,saveConf,setBaseDir} from "./persistent.mjs"
 import {runOSCServer} from './OSCAPIBinder.mjs'
 import {createRemoteInstanceFromSchema} from './API.mjs'
-import * as Sensor from './Sensor.mjs'
+// import * as Sensor from './Sensor.mjs'
 import rootNode from './rootNode.mjs'
 import http from 'http'
 import {readFileSync,existsSync} from 'fs'
