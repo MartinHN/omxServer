@@ -55,13 +55,14 @@ export class OSCServerModule {
 
     this.udpPort = udpPort;
     udpPort.on('ready', () => {
-      udpPort.isConnected = true;
       clearTimeout(udpPort.timeout)
       const ipAddresses = getIPAddresses();
-      console.log('Listening for OSC over UDP.');
       if(!ipAddresses.length){
-        throw Error("can't listen")
+        udpPort.emit('error', "no ip to bind to");
+        return;
       }
+      udpPort.isConnected = true;
+      console.log('Listening for OSC over UDP.');
       ipAddresses.forEach((address) => {
         console.log(' Host:', address + ', Port:', udpPort.options.localPort);
       });
@@ -109,6 +110,7 @@ export class OSCServerModule {
   }
   tryReConnect(port,firstAttempt) {
     if (port.isConnected) {
+      console.log("already connected")
       clearTimeout(this.timeout)
       return;
     }

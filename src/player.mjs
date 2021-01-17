@@ -9,8 +9,6 @@ api.addFunction("stop",()=>{if(player.running)player.quit()},[],undefined)
 api.addStream("isPlaying",'b',{default:false})
 api.addMember('path','s',{default:'/home/pi/omxServer/public/uploads/videoFile'})
 api.addMember('volume','f',{default:1,minimum:0,maximum:2})
-api.addFunction("vol+",()=>{if(player.running)player.volUp()},[],undefined)
-api.addFunction("vol-",()=>{if(player.running)player.volDown()},[],undefined)
 api.addFile('videoFile','video','video.mov')
 api.addFunction('save',()=>{
     const nConf = playerInstance.getState()

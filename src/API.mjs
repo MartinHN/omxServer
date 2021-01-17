@@ -31,7 +31,7 @@ export class APIBase{
             get:()=>{return this.__members[name].value}
         })
     }
-
+    
     addFile(name,type,localPath){
         this.__files[name] = {type,path:localPath}
     }
@@ -53,7 +53,7 @@ export class APIBase{
             }
             res.streams  = streams
         }
-
+        
         if(this.__files && Object.keys(this.__files).length){
             const files = {}
             for(const [k,v] of Object.entries(this.__files)){
@@ -107,6 +107,7 @@ export class APIBase{
 class RemoteAPI  extends APIBase{
     constructor(apiName,jsSchema,isRemoteRoot,remoteCb){
         super(apiName);
+        
         this.isRemoteRoot = isRemoteRoot;
         this.remoteCb = remoteCb;
         if(jsSchema.members){
@@ -241,7 +242,7 @@ export class NodeInstance{
         }
     }
     
-    getState(){
+    getState(ignoreRemoteChilds=false){
         const res = {}
         
         if(this.api){
@@ -256,6 +257,7 @@ export class NodeInstance{
             // res['childs'] = {};
             const cdic = res;//['childs']
             for(const [k,v] of Object.entries(ch)){
+                if(!ignoreRemoteChilds || !v.api.isRemoteRoot)
                 cdic[k] = v.getState();
             }
         }
@@ -282,17 +284,34 @@ export class NodeInstance{
         }
     }
     getChildsWithAPIType(t){
+        // TODO use getChildsIfPredicate
         let res = []
         for(const c of Object.values(this.childs)){
             const cAPIs = c.getChildsWithAPIType(t);
             if(cAPIs.length)
-                res = res.concat(cAPIs)
+            res = res.concat(cAPIs)
         }
         if(this.api.apiName==t){
             res.push(this);
         }
         return res;
         
+    }
+    
+    getChildsIfPredicate(fun,preventSubChilds){
+        let res = []
+        const  ImIn = fun(this);
+        if(ImIn){
+            res.push(this);
+        }
+        if(!preventSubChilds || !ImIn){
+            for(const c of Object.values(this.childs)){
+                const cAPIs = c.getChildsIfPredicate(fun,preventSubChilds);
+                if(cAPIs.length)
+                res = res.concat(cAPIs)
+            }
+        }
+        return res;
     }
     
 }

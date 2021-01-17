@@ -11,7 +11,9 @@ export function loadConf(fName){
     const confPath = confBasePath + (fName || defaultConf)
     try {
         const rawdata = readFileSync(confPath);
-        return JSON.parse(rawdata);
+        const conf= JSON.parse(rawdata);
+        console.log('loaded',conf,'from', confPath);
+        return conf
         
     } catch (error) {
         
@@ -24,7 +26,7 @@ export  function saveConf(conf,fName){
     const confPath = confBasePath + (fName || defaultConf)
     setRW(true)
     const jsonContent = JSON.stringify(conf);
-    console.log('saving',jsonContent);
+    console.log('saving',jsonContent,'in', confPath);
     
     writeFileSync(confPath, jsonContent, 'utf8');
     

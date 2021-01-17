@@ -15,12 +15,7 @@ import { setBlackBackground } from "./player.mjs"
 
 EndpointWatcher.on("added",ep=>{
     console.log("endpoint added", ep.name)
-    // ep.on("message",msg=>{
-    //     const newAddr = [ep.name,...msg.address]
-    //     console.log('newAddr',newAddr)
-    //     rootNode.processMsgFromListener(ep,newAddr,msg.args)
-    // })
-    ep.instanceName = 'ep_'+ep.name// to trach listener loops
+    ep.instanceName = 'ep_'+ep.name// to track listener loops
 })
 
 EndpointWatcher.on("removed",ep=>{
@@ -74,16 +69,8 @@ EndpointWatcher.setup()
 // if endpoint has not thrown error
 setBlackBackground();
 
-/// Sensor specifiv
-
-const lastConf  = loadConf();
-
-// conf.volume=1
-// console.log('conf',conf);
-rootNode.restoreState(lastConf)
 
 // OSC
-
 runOSCServer(rootNode);
 
 
@@ -92,6 +79,11 @@ httpServer.setup(rootNode)
 
 
 // mainLogic
-
 masterLogic.setup(rootNode);
 rootNode.addChild('logic',masterLogic)
+
+
+
+// finally reload last state
+const lastConf  = loadConf();
+rootNode.restoreState(lastConf)
