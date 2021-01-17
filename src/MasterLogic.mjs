@@ -4,8 +4,8 @@ import {NodeInstance,APIBase} from './API.mjs'
 
 const api = new APIBase("masterLogic")
 
-api.addMember('onTime','f',{default:1,minimum:0,maximum:3})
-api.addMember('offTime','f',{default:1,minimum:0,maximum:3})
+api.addMember('onTime','f',{default:1,minimum:0,maximum:60})
+api.addMember('offTime','f',{default:1,minimum:0,maximum:60})
 api.addStream('smoothPres','b')
 
 
@@ -13,8 +13,6 @@ const conf = api.memberGetter();
 
 const masterInstance= new NodeInstance()
 masterInstance.setAPI(api);
-let lastPlayStart = 0;
-let lastPlayStop = 0;
 
 let changePresenceTimeOut;
 let hadPresence = false;
@@ -37,6 +35,8 @@ function setNewPresence(b){
     }
     console.log('-->new presence ',b,!!rootNode);
 }
+
+
 masterInstance.setup = (r)=>{
     rootNode = r;
     rootNode.evts.on("stateChanged",msg=>{
