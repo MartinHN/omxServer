@@ -17,115 +17,6 @@
 // };
 
 
-function createToggle(name,changeCB){
-    const  el = document.createElement("input");
-    el.setAttribute("type", "button");
-    el.setAttribute("value",name);
-    el.setValue = (v)=>{
-        if(v.length)v=v[0];
-        v = v && parseInt(v)!=0;
-        el.checked = v
-        const onBg="black"
-        const offBg="white"
-        el.setAttribute("style",`background:${v?onBg:offBg};color:${v?offBg:onBg}`);
-        // el.setAttribute("color",v?offBg:onBg);
-    }
-    el.onclick = ()=>{el.setValue(!el.checked);if(changeCB )changeCB(el.checked?1:0)}
-    
-    return el
-}
-
-function createSlider(name,changeCB,integer,min,max){
-    const el = document.createElement("input");
-    const hasMin = min!==undefined
-    const hasMax = max!==undefined
-    el.setAttribute("type", (hasMin && hasMax)?"range":"number");
-    if(hasMin){el.setAttribute("min",min);}
-    if(hasMax){el.setAttribute("max",max);}
-    if(hasMin && hasMax){
-        el.setAttribute("style","width:100%");
-        const step = integer?1:(max -min)/255 
-        el.setAttribute("step",step)
-    }
-    el.setValue = v=>{
-        el.valueAsNumber = v;
-    }
-    el.oninput = ()=>{
-        if(changeCB){changeCB(el.valueAsNumber)}
-        
-    }
-    return el
-}
-
-function createImage(name,pxW,pxH,domW,domH){
-    const div = document.createElement("div");
-    const ctl = document.createElement("div");
-    ctl.setAttribute('style','display:flex;flex-direction:row');
-
-    const contrastEl = createToggle("contrast")
-    ctl.appendChild(contrastEl);
-    const normalizeEl = createToggle("normalize")
-    ctl.appendChild(normalizeEl);
-    normalizeEl.setValue(true);
-    const logEl = createToggle("log");
-    ctl.appendChild(logEl);
-    div.appendChild(ctl)
-    const  el = document.createElement("canvas");
-    const ctx = el.getContext('2d');
-    
-    ctx.canvas.width = pxW;
-    ctx.canvas.height = pxH;
-    el.setAttribute("style", `
-    width:${domW}px;
-    height:${domH}px;
-    image-rendering: -moz-crisp-edges;
-    image-rendering: -webkit-crisp-edges;
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;`);
-    const imData = ctx.createImageData(pxW,pxH);
-    ctx.imageSmoothingEnabled = false;
-    console.log('pixel Update',ctx)
-    const setValue = v=>{
-        if(logEl.checked) console.log('data',v);
-        if(normalizeEl.checked){
-            for(let i = 0 ;i < v.length ; i++){
-                v[i] =v[i]*255
-            }
-            // console.log(v)
-        }
-        if(contrastEl.checked){
-            let min = 255;
-            let max = 0;
-            for(const vv of v){
-                if(vv < min)min = vv
-                if(vv>max)max =vv
-            }    
-            if(max>min){
-                const scaleF = 255/(max-min);
-                for(let i = 0 ;i < v.length ; i++){
-                    v[i] = (v[i]-min)*scaleF
-                }
-            }
-        }
-        
-        const pW = 4;
-        for(let i = 0 ;i < v.length ; i++){
-            const hot = v[i] > 255;
-            const cold = v[i] < 1;
-
-            imData.data[i*pW] = hot?255:v[i]
-            imData.data[i*pW+1] = (hot || cold) ? 0:v[i]
-            imData.data[i*pW+2] = cold? 255:hot?0:v[i]
-            imData.data[i*pW+3] = 255
-        }
-        // Update the canvas with the new data
-        ctx.putImageData(imData, 0, 0);
-    };
-    div.appendChild(el)
-    div.setValue = setValue;
-    return div;
-    
-}
 // in osc.js
 const syncObj = new EventEmitter();
 
@@ -182,7 +73,11 @@ function addWidget(domP,typeObj,name,addr){
         el = createImage(name,typeObj.width,typeObj.height,300,300)
         const wsync = new widgSync(el,addr,v=>{el.setValue(v)});
     }
-    
+    else if(t=="file"){
+        
+        el = createFile(name,typeObj.fileType)
+        // const wsync = new widgSync(el,addr,v=>{el.setValue(v)});
+    }
     if(!el){
         console.error("no type found for ",t)
     }
@@ -254,6 +149,13 @@ class DOMSchemaContainer{
             }
         }
         
+        
+        if(schema.files && Object.keys(schema.files).length){
+            for(const [k,v] of Object.entries( schema.files)){
+                const nAddr = rootAddr?[...rootAddr,k]:[k]
+                this.widgs[k] = addWidget(c,{type:"file",fileType:v.type},k,nAddr)
+            }
+        }
         
         if(schema.childs && Object.keys(schema.childs).length){
             for(const [k,v] of Object.entries( schema.childs)){

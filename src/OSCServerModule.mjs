@@ -59,6 +59,9 @@ export class OSCServerModule {
       clearTimeout(udpPort.timeout)
       const ipAddresses = getIPAddresses();
       console.log('Listening for OSC over UDP.');
+      if(!ipAddresses.length){
+        throw Error("can't listen")
+      }
       ipAddresses.forEach((address) => {
         console.log(' Host:', address + ', Port:', udpPort.options.localPort);
       });

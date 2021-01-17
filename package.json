@@ -10,7 +10,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "express": "^4.17.1",
     "node-omxplayer": "^0.6.1",
-    "osc": "^2.4.1"
+    "osc": "^2.4.1",
+    "pump": "^3.0.0"
   }
 }

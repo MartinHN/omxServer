@@ -2,6 +2,7 @@
 <!-- <script src="./js/json-editor.js"></script> -->
 <!-- <script src="./jsSchema"></script> -->
 <script src="./js/osc-browser.min.js"></script>
+<script src="./js/dom.js"></script>
 <script src="./js/jsonSchema.js"></script>
 <script src="./wsConf"></script>
 <script src="./js/ws.js"></script>
@@ -20,6 +21,7 @@
         wsCon.send(msg.address, msg.args);
     })
     syncObj.on("newSchema", schema => {
+        console.log(schema)
         root.innerHTML = ""
         rootParser.parse(schema, root);
     });

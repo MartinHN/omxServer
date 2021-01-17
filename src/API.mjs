@@ -12,6 +12,7 @@ export class APIBase{
     __functions = {}
     __members = {}
     __streams = {}
+    __files = {}
     
     constructor(name){
         this.apiName = name
@@ -30,6 +31,10 @@ export class APIBase{
             get:()=>{return this.__members[name].value}
         })
     }
+
+    addFile(name,type,localPath){
+        this.__files[name] = {type,path:localPath}
+    }
     
     
     getJSONSchema(){
@@ -47,6 +52,14 @@ export class APIBase{
                 streams[k] = {type:v.type,...v.opts}
             }
             res.streams  = streams
+        }
+
+        if(this.__files && Object.keys(this.__files).length){
+            const files = {}
+            for(const [k,v] of Object.entries(this.__files)){
+                files[k] = {type:v.type,...v.opts}
+            }
+            res.files  = files
         }
         if(this.__functions && Object.keys(this.__functions).length){
             const funs = {}

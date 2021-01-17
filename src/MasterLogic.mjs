@@ -30,7 +30,7 @@ function setNewPresence(b){
         }
         const lights = rootNode.getChildsWithAPIType("light");
         for(const p of Object.values(lights)){
-            p.childs["light"].setAnyValue("switch",hadPresence?1:0,masterInstance);
+            p.setAnyValue("switch",hadPresence?1:0,masterInstance);
         }
         console.log("has playersLights num ",players.length,lights.length)
         masterInstance.setAnyValue('smoothPres',hadPresence,masterInstance)

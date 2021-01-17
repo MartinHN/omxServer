@@ -1,25 +1,16 @@
 import path from 'path'
 import { execSync, execFileSync } from "child_process"
 import {readFileSync, writeFileSync} from 'fs'
+const proc =  execSync("uname -a").toString()
+const isPi = proc.includes("armv7")
+export const thisPath = isPi?"/home/pi/omxServer":"/home/tinmar/Work/mili/omxServer" 
+const confBasePath=thisPath+"/public/"
+const defaultConf = 'app.conf'
 
-let basePath = '/home/pi/omxPlayer'
-let pPath=basePath+"playerConf.json"
-export function setBaseDir(d){
-    basePath = d;
-    pPath=basePath+"/playerConf.json"
-}
-
-
-function saveWhenPerm(conf){
-    const jsonContent = JSON.stringify(conf);
-    console.log('saving',jsonContent);
-    
-    writeFileSync(pPath, jsonContent, 'utf8');
-}
-
-export function loadConf(){
+export function loadConf(fName){
+    const confPath = confBasePath + (fName || defaultConf)
     try {
-        const rawdata = readFileSync(pPath);
+        const rawdata = readFileSync(confPath);
         return JSON.parse(rawdata);
         
     } catch (error) {
@@ -29,25 +20,34 @@ export function loadConf(){
 }
 
 
-export  function saveConf(conf){
-    let out;
+export  function saveConf(conf,fName){
+    const confPath = confBasePath + (fName || defaultConf)
+    setRW(true)
+    const jsonContent = JSON.stringify(conf);
+    console.log('saving',jsonContent);
+    
+    writeFileSync(confPath, jsonContent, 'utf8');
+    
+    setRW(false)
+    
+}
+
+export function isRW(){
     try{
-        out = execSync("mount | grep 'type ext4' | grep rw")
-        
+       const out = execSync("mount | grep 'type ext4' | grep rw")
+       if(out){return true}    
     }catch(e){
         
     }
-    if(out){
-        console.log("already in rw mode")
-        saveWhenPerm(conf)
+    return false
+}
+export const bootedInRW = isRW()
+
+export function setRW(isRW){
+    if(bootedInRW){
+        console.log('ignoring rw as it was booted rw')
         return;
     }
-    console.log('continuing')
-    out =  execFileSync(basePath+"rw.sh",["rw"])
-    if(out)console.log("out",out);
-    
-    saveWhenPerm(conf)
-    
-    out =  execFileSync(basePath+"rw.sh",["ro"])
-    
+    const out =  execFileSync(thisPath+"/src/rw.sh",[isRW?"rw":"ro"])
+    if(out)console.log("rw out",out);
 }

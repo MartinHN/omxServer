@@ -1,1 +1,1 @@
-{"autoLoad":false,"player":{"path":"/home/pi/tst264.mp4","volume":1}}
+{"autoLoad":false,"player":{"path":"/home/pi/omxServer/ss","volume":1},"logic":{"onTime":1,"offTime":1}}
