@@ -28,9 +28,8 @@ function setNewPresence(b){
         }
         const lights = rootNode.getChildsWithAPIType("light");
         for(const p of Object.values(lights)){
-            p.setAnyValue("switch",hadPresence?1:0,masterInstance);
+            p.setAnyValue("switch",hadPresence?0:1,masterInstance);
         }
-        console.log("has playersLights num ",players.length,lights.length)
         masterInstance.setAnyValue('smoothPres',hadPresence,masterInstance)
     }
     console.log('-->new presence ',b,!!rootNode);
@@ -44,7 +43,7 @@ masterInstance.setup = (r)=>{
         const sAddr = "/"+msg.address.join('/');
         if(sAddr == "/eye/presence"){
             const  hasPresence = !!msg.args && msg.args[0]!=0
-            console.log("master rcvd presence",hasPresence,msg.args)
+            // console.log("master rcvd presence",hasPresence,msg.args)
             const now = millis()
             if(changePresenceTimeOut){
                 clearTimeout(changePresenceTimeOut);
@@ -53,7 +52,7 @@ masterInstance.setup = (r)=>{
             if(hadPresence != hasPresence){
                 const target = hasPresence
                 const to = 1000*(hasPresence?conf.onTime:conf.offTime);
-                console.log('setting ',target, 'in',to)
+                // console.log('setting ',target, 'in',to)
                 changePresenceTimeOut = setTimeout(()=>{
                     setNewPresence(target)},to)
                 }
@@ -62,12 +61,7 @@ masterInstance.setup = (r)=>{
             else if(sAddr == "/player/isPlaying"){
                 const isPlaying = msg.args;
                 console.log("master rcvd play",isPlaying)
-                if(isPlaying){
-                    lastPlayStart = millis()
-                }
-                else{
-                    lastPlayStop = millis()
-                }
+              
             }
         })
     }

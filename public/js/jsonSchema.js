@@ -158,8 +158,9 @@ class DOMSchemaContainer{
         }
         
         if(schema.childs && Object.keys(schema.childs).length){
-            for(const [k,v] of Object.entries( schema.childs)){
-                
+            // sort them
+            for(const k of Object.keys( schema.childs).sort()){
+                const v = schema.childs[k]
                 const nAddr = rootAddr?[...rootAddr,k]:[k]
                 const nd = new DOMSchemaContainer()
                 nd.parse(v,c,nAddr)
