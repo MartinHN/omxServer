@@ -20,7 +20,7 @@ EndpointWatcher.on("added",ep=>{
 
 EndpointWatcher.on("removed",ep=>{
     console.error("endpoint removed",ep.name)
-    delete rootNode[ep.name]
+    rootNode.removeChild(ep.name)
     httpServer.broadcastToWebClis("/schema",JSON.stringify(rootNode.getJSONSchema()));
     httpServer.broadcastToWebClis("/state",JSON.stringify(rootNode.getState()));
 })
@@ -30,7 +30,8 @@ EndpointWatcher.on("schema",e=>{
     console.log("auto adding schema",e.ep.name)
     const nI= createRemoteInstanceFromSchema(e.ep.type,e.schema,true,msg=>{
         if(msg.from!==e.ep){
-            console.log('sending back to ep ',e.ep.name,msg.address);
+            const fromName= msg.from?msg.from.instanceName:"not specified"
+            console.log('sending back to ep ',e.ep.name,msg.address,"from",fromName);
             e.ep.send('/'+msg.address.join('/'),msg.args)
         }
     })

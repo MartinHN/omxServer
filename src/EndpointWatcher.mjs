@@ -137,6 +137,7 @@ class EndpointWatcher extends EventEmitter{
                     const nMsg = {...msg}
                     nMsg.address =msg.address.substr(1).split('/');
                     nMsg.fromMulticast=true;
+                    // console.log("multicast rcvd",msg.address);
                     for(const epMulticasting of epMulticastingList){
                         epMulticasting.emit("message",nMsg)
                         this.emit("endpointMsg",{ep:epMulticasting,nMsg})

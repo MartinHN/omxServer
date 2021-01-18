@@ -145,22 +145,41 @@ class RemoteAPI  extends APIBase{
         if(remoteCb){
             this.parentHierarchyChanged = (path)=>{
                 if(this.remoteCb){
+                    if(this.oldRootEvts){
+                        console.log("removing listener for api",this.apiName)
+                        this.oldRootEvts.off("stateChanged",this.stateChangedCb.bind(this));    
+                        this.oldRootEvts = null;
+                    }
+                    if(path && path.root){
+                        this.rootAddress = path.address.slice()
+                        console.log("adding listener for api",this.apiName)
+                        this.oldRootEvts = path.root.evts;
+                        path.root.evts.on("stateChanged",this.stateChangedCb.bind(this));
+                    }
                     // console.log("register relative listener",path.address)
-                    path.root.evts.on("stateChanged",msg=>{
-                        if(msg.isStream){return}
-                        const thisAddr = path.address.slice()
-                        const msgAddr = msg.address.slice()
-                        const commonPart =  msgAddr.splice(0,thisAddr.length);
-                        // console.log('relative check addr',thisAddr,commonPart)
-                        if(thisAddr.join('/')==commonPart.join('/')){
-                            const relMsg = {address:msgAddr ,args:msg.args,from:msg.from};
-                            // console.log("calling relative listener",msgAddr)
-                            this.remoteCb(relMsg)
-                        }
-                    });
                 }
             }
         }
+        
+    }
+    stateChangedCb(msg){
+        if(msg.isStream){return}
+        if(!this.remoteCb){return}
+        // console.log("api rcvd state change")
+        
+        
+        const msgAddr = msg.address.slice()
+        const commonPart =  msgAddr.splice(0,this.rootAddress.length);
+        // console.log('relative check addr',this.rootAddress,commonPart)
+        if(this.rootAddress.join('/')==commonPart.join('/')){
+            const relMsg = {address:msgAddr ,args:msg.args,from:msg.from};
+            // console.log("calling relative listener",msgAddr)
+            this.remoteCb(relMsg)
+        }
+        
+    }
+    
+    close(){
         
     }
     
@@ -205,8 +224,11 @@ export class NodeInstance{
     removeChild(name){
         const ch = this.childs[name]
         if(ch){
-            c.parentNode = null;
-            c.nameInParent = "";
+            ch.parentNode = null;
+            ch.nameInParent = "";
+            if(ch.api.parentHierarchyChanged){
+                ch.api.parentHierarchyChanged(null)
+            }
             delete this.childs[name]
         }
     }

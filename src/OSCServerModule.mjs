@@ -85,6 +85,8 @@ export class OSCServerModule {
     
     close(){
       if(this.udpPort){
+        console.log("closing udpPort")
+        this.udpPort.isConnected = false;
         this.udpPort.close();
       }
       else{
