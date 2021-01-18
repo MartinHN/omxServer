@@ -3,7 +3,7 @@ import {EventEmitter} from 'events'
 
 const multicastIp = "230.1.1.1"
 const announcePort = 4000;
-const announceTimeSecond = 5; 
+const announceTimeSecond = 3; 
 
 class Endpoint extends EventEmitter{
     constructor(announce,globalEvts){

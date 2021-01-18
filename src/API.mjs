@@ -202,6 +202,15 @@ export class NodeInstance{
         }
     }
     
+    removeChild(name){
+        const ch = this.childs[name]
+        if(ch){
+            c.parentNode = null;
+            c.nameInParent = "";
+            delete this.childs[name]
+        }
+    }
+    
     getDepthPath(childName){
         let insp = this;
         let lastInsp = insp;

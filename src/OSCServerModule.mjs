@@ -75,6 +75,7 @@ export class OSCServerModule {
       udpPort.on('message', this.processMsg.bind(this));
       
       udpPort.on('error', (err) => {
+        udpPort.isConnected = false;
         console.error('OSC Module connection error', err);
         this.defferReconnect(udpPort)
       });
