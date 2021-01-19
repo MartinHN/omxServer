@@ -9,6 +9,7 @@ api.addFunction("stop",()=>{if(player.running)player.quit()},[],undefined)
 api.addStream("isPlaying",'b',{default:false})
 api.addMember('path','s',{default:'/home/pi/omxServer/public/uploads/videoFile'})
 api.addMember('volume','f',{default:1,minimum:0,maximum:2})
+api.addMember('useHDMI','b',{default:false})
 api.addFile('videoFile','video','video.mov')
 api.addFunction('save',()=>{
     const nConf = playerInstance.getState()
@@ -62,7 +63,7 @@ function playDefault(){
     const milibelVolume = Math.round((conf.volume - 1) * 4000)
     console.log("volume",milibelVolume)
     
-    player.newSource(conf.path,'local',false,milibelVolume);
+    player.newSource(conf.path,conf.useHDMI?'hdmi':'local',false,milibelVolume);
     
     
 }

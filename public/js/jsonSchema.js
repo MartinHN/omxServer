@@ -47,7 +47,7 @@ function addWidget(domP,typeObj,name,addr){
     const wcont =  document.createElement("div");
     if(t=="f" || t=="number" || t =="i" || t == "integer"){
         el = createSlider(name,v=>{wsync.send(v)},(t=="i" || t=="integer"),typeObj.minimum,typeObj.maximum)
-        const wsync = new widgSync(el,addr,v=>{el.setValue(v)});
+        const wsync = new widgSync(el,addr,v=>{console.log("slider");el.setValue(v)});
     }
     else if(t=='b' || t=="boolean"){
         el = createToggle(name,v=>{wsync.send(v)})

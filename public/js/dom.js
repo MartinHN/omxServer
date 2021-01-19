@@ -24,24 +24,30 @@ function createToggle(name,changeCB){
 }
 
 function createSlider(name,changeCB,integer,min,max){
-    const el = document.createElement("input");
+    const el = document.createElement("div");
+    const vl = document.createElement("div");
+    el.appendChild(vl)
+    const sl = document.createElement("input");
     const hasMin = min!==undefined
     const hasMax = max!==undefined
-    el.setAttribute("type", (hasMin && hasMax)?"range":"number");
-    if(hasMin){el.setAttribute("min",min);}
-    if(hasMax){el.setAttribute("max",max);}
+    sl.setAttribute("type", (hasMin && hasMax)?"range":"number");
+    if(hasMin){sl.setAttribute("min",min);}
+    if(hasMax){sl.setAttribute("max",max);}
     if(hasMin && hasMax){
-        el.setAttribute("style","width:100%");
+        sl.setAttribute("style","width:100%");
         const step = integer?1:(max -min)/255 
-        el.setAttribute("step",step)
+        sl.setAttribute("step",step)
     }
     el.setValue = v=>{
-        el.valueAsNumber = v;
+        console.log("set v",v)
+        sl.valueAsNumber = v;
+        vl.innerHTML = ""+sl.valueAsNumber
     }
-    el.oninput = ()=>{
-        if(changeCB){changeCB(el.valueAsNumber)}
-        
+    sl.oninput = ()=>{
+        if(changeCB){changeCB(sl.valueAsNumber)}
+        vl.innerHTML = ""+sl.valueAsNumber
     }
+    el.appendChild(sl)
     return el
 }
 
