@@ -38,15 +38,18 @@ EndpointWatcher.on("schema",e=>{
     
     if(e.ep.type=="eye"){
         // hack for min max
-        console.log(nI.childs.g.api.__members)
-        nI.childs.g.api.__members.scaleMin.opts.minimum = 10;
-        nI.childs.g.api.__members.scaleMax.opts.minimum = 10;
+        // console.log(nI.childs.g.api.__members)
+        // nI.childs.g.api.__members.scaleMin.opts.minimum = 10;
+        // nI.childs.g.api.__members.scaleMax.opts.minimum = 10;
         // nI.api.__members.scaleMax.opts.minimum = 10;
         //
         nI.api.addStream("mat","pixels",{width:8,height:8})
         nI.api.addStream("presence","b")
         nI.api.addStream("presenceSize","i")
         
+    }
+    else if(e.ep.type=="light"){
+        e.ep.send('/switch',1)
     }
     e.ep.on("message" , msg=>{
         if(msg.fromMulticast){msg.args.shift()}// remove uuid
