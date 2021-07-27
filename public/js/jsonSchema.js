@@ -57,6 +57,7 @@ function addWidget(domP,typeObj,name,addr){
     else if(t=='s' || t=="string"){
         el = document.createElement("input");
         el.setAttribute("type", "text");
+        el.setAttribute("style", "width:100%;");
         const wsync = new widgSync(el,addr,v=>{el.value = v});
         el.onchange = ()=>{wsync.send(el.value);}
     }

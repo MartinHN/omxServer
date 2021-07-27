@@ -6,8 +6,9 @@ import {readFileSync} from 'fs'
 import WebSocket  from "ws";
 import osc from 'osc'
 import {setRW,thisPath} from './persistent.mjs'
+import {httpPort} from './conf.mjs'
 
-const httpPort = 8000;
+
 const httpHost = '0.0.0.0'
 const publicPath = thisPath+"/public"
 const uploadPath = publicPath+'/uploads';

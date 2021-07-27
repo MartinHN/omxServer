@@ -1,6 +1,7 @@
 import osc from "osc"
 import {OSCServerModule} from "./OSCServerModule.mjs"
-const udpPort=9009;
+import {oscPortNum} from "./conf.mjs"
+
 
 const multicastIp = "230.1.1.1"
 const announcePort = 4004;
@@ -8,7 +9,7 @@ const announceTimeSecond = 5;
 // Create an osc.js UDP Port listening on port udPPort.
 const oscRcv = new osc.UDPPort({
     localAddress: "0.0.0.0",
-    localPort: udpPort,
+    localPort: oscPortNum,
     metadata: true
 });
 
@@ -26,7 +27,7 @@ oscRcv.on("message",  (msg)=> {
 })
 
 oscRcv.on('ready', () => {
-    console.log("listening on port",udpPort)
+    console.log("listening on port",oscPortNum)
     
 })
 

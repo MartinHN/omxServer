@@ -1,5 +1,5 @@
 import {NodeInstance,APIBase} from './API.mjs' 
-import {loadConf,saveConf} from "./persistent.mjs"
+import {loadConf,saveConf,isPi} from "./persistent.mjs"
 //////////////
 // API
 
@@ -39,6 +39,7 @@ export function setup(){
     setBlackBackground();
 }
 export function setBlackBackground(){
+    if(!isPi){console.warn("would have set black bg");return;}
     ///////////////
     // set black background on headless pi4
     try{
@@ -62,8 +63,12 @@ function playDefault(){
     playerInstance.setAnyValue('isPlaying',true,playerInstance)
     const milibelVolume = Math.round((conf.volume - 1) * 4000)
     console.log("volume",milibelVolume)
-    
-    player.newSource(conf.path,conf.useHDMI?'hdmi':'local',false,milibelVolume);
+    if(isPi){
+        player.newSource(conf.path,conf.useHDMI?'hdmi':'local',false,milibelVolume);
+    }
+    else{
+        execSync('aplay /home/tinmar/Documents/Sounds/poil.wav')
+    }
     
     
 }

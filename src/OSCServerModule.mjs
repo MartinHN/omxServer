@@ -7,12 +7,12 @@ export const getIPAddresses = () => {
   for (const deviceName of Object.keys(interfaces)) {
     const addresses = interfaces[deviceName];
     for (const addressInfo of addresses) {
-      if (addressInfo.family === 'IPv4' && !addressInfo.internal && addressInfo.address.includes("13")) {
+      if (addressInfo.family === 'IPv4' && !addressInfo.internal ) {
         ipAddresses.push(addressInfo.address);
       }
     }
   }
-  
+  console.log({ipAddresses})
   return ipAddresses;
 };
 
@@ -24,9 +24,9 @@ export class OSCServerModule {
   constructor(msgCb = undefined) {
     this.msgCb = msgCb
   }
-  static getMulticastIp() {
-    return '230.1.1.1'
-  }
+  // static getMulticastIp() {
+  //   return '230.1.1.1'
+  // }
   connect(ip, port) {
     let multicast = false;
     if (ip.startsWith('230')) {
