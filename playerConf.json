@@ -1,1 +1,11 @@
-{"autoLoad":false,"player":{"path":"/home/pi/omxServer/ss","volume":1},"logic":{"onTime":1,"offTime":1}}
+{
+    "autoLoad": false,
+    "player": {
+        "path": "/home/pi/raspestrio/omxServer/ss",
+        "volume": 1
+    },
+    "logic": {
+        "onTime": 1,
+        "offTime": 1
+    }
+}
