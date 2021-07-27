@@ -4,17 +4,23 @@ import {loadConf,saveConf,isPi} from "./persistent.mjs"
 // API
 
 const api = new APIBase("player")
-api.addFunction("play",()=>{playDefault()},[],undefined)
-api.addFunction("stop",()=>{if(player.running)player.quit()},[],undefined)
-api.addStream("isPlaying",'b',{default:false})
-api.addMember('path','s',{default:'/home/pi/raspestrio/omxServer/public/uploads/videoFile'})
-api.addMember('volume','f',{default:1,minimum:0,maximum:2})
-api.addMember('useHDMI','b',{default:false})
-api.addFile('videoFile','video','video.mov')
+
 api.addFunction('save',()=>{
     const nConf = playerInstance.getState()
     saveConf(nConf,'player.json');
 },[],undefined)
+
+api.addFunction("play",()=>{playDefault()},[],undefined)
+api.addFunction("stop",()=>{if(player.running)player.quit()},[],undefined)
+api.addStream("isPlaying",'b',{default:false})
+
+api.addMember('volume','f',{default:1,minimum:0,maximum:2})
+
+api.addFile('videoFile','video','video.mov')
+api.addMember('videoFileName','s',{default:'no File',readonly:true})
+api.addMember('useHDMI','b',{default:false})
+api.addMember('path','s',{default:'/home/pi/raspestrio/omxServer/public/uploads/videoFile'})
+
 
 
 
@@ -67,7 +73,7 @@ function playDefault(){
         player.newSource(conf.path,conf.useHDMI?'hdmi':'local',false,milibelVolume);
     }
     else{
-        execSync('aplay /home/tinmar/Documents/Sounds/poil.wav')
+        execSync('aplay '+conf.path)
     }
     
     

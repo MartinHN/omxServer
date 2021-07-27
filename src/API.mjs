@@ -13,16 +13,19 @@ export class APIBase{
     __members = {}
     __streams = {}
     __files = {}
-    
+    __orderedMemberNames = []
+
     constructor(name){
         this.apiName = name
     }
     addFunction(name, fun, argTypes,retType){
         this.__functions[name] ={fun,argTypes,retType}
+        this.__orderedMemberNames.push(name)
     }
     
     addStream(name, type,opts){
         this.__streams[name] ={type,opts}
+        this.__orderedMemberNames.push(name)
     }
     
     addMember(name,type,opts){
@@ -30,10 +33,12 @@ export class APIBase{
         Object.defineProperty(this.__members[name],'getter',{
             get:()=>{return this.__members[name].value}
         })
+        this.__orderedMemberNames.push(name)
     }
     
     addFile(name,type,localPath){
         this.__files[name] = {type,path:localPath}
+        this.__orderedMemberNames.push(name)
     }
     
     
@@ -42,10 +47,11 @@ export class APIBase{
         if(this.__members && Object.keys(this.__members).length){
             const members = {}
             for(const [k,v] of Object.entries(this.__members)){
-                members[k] = {type:typeToJSONType(v.type),minimum:v.opts.minimum,maximum:v.opts.maximum}
+                members[k] = {type:typeToJSONType(v.type),minimum:v.opts.minimum,maximum:v.opts.maximum,readonly:v.opts.readonly}
             }
             res.members  = members
         }
+
         if(this.__streams && Object.keys(this.__streams).length){
             const streams = {}
             for(const [k,v] of Object.entries(this.__streams)){
@@ -61,6 +67,7 @@ export class APIBase{
             }
             res.files  = files
         }
+
         if(this.__functions && Object.keys(this.__functions).length){
             const funs = {}
             for(const [k,v] of Object.entries(this.__functions)){
@@ -71,6 +78,10 @@ export class APIBase{
                 
             }
             res.functions = funs;
+        }
+        
+        if(this.__orderedMemberNames && Object.keys(this.__orderedMemberNames).length){
+            res.orderedMemberNames = this.__orderedMemberNames.slice() 
         }
         return res;
     }
@@ -301,6 +312,7 @@ export class NodeInstance{
         // console.log("sending state change from",from.instanceName,path.address)
         path.root.evts.emit("stateChanged",{from,address:path.address,args:value})
     }
+
     processMsgFromListener(from,addressSpl,args){
         
         if(addressSpl && addressSpl.length==1){

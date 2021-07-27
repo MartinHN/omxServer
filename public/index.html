@@ -6,7 +6,7 @@
 <script src="./js/jsonSchema.js"></script>
 <script src="./wsConf"></script>
 <script src="./js/ws.js"></script>
-<h2> RPI Config</h2>
+<h2> Media Player </h2>
 
 <div id='rootEl'></div>
 <script>
@@ -23,10 +23,20 @@
     syncObj.on("newSchema", schema => {
         console.log(schema)
         root.innerHTML = ""
-        rootParser.parse(schema, root);
+        try {
+            rootParser.parse(schema, root);
+        }
+        catch (e) {
+            console.error(e);
+        }
     });
     syncObj.on("newState", state => {
-        rootParser.parseState(state);
+        try {
+            rootParser.parseState(state);
+        }
+        catch (e) {
+            console.error(e);
+        }
     });
 
 

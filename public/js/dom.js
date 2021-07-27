@@ -136,7 +136,7 @@ function futch(url, opts={}, onProgress) {
     });
 }
 
-function createFile(name,type){
+function createFile(name,type,uploadedCb){
     const vidContainer = document.createElement('div');
     const input =  createOneEl(`<input type="file" name="${name}" />`);
     const progress = document.createElement('div');
@@ -178,11 +178,11 @@ function createFile(name,type){
         },p=>{
             setProgress(p.loaded/p.total);
         })
-        .then(response => {console.log("upl resp");console.log(response);setProgress(1);})
+        .then(response => {console.log("upl resp");console.log(response);setProgress(1);if(uploadedCb && file){uploadedCb(file.name)}})
         .catch(error => {console.log("upl err",error);setProgress(1);});
     };
     // Event handler executed when a file is selected
-    input.addEventListener('change', () => upload(input.files[0]), false);
+    input.addEventListener('change', () => {upload(input.files[0])}, false);
     vidContainer.appendChild(input)
     if(type=="video"){
         console.log("adding video file")
