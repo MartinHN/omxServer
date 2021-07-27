@@ -11,6 +11,9 @@ const httpPort = 8000;
 const httpHost = '0.0.0.0'
 const publicPath = thisPath+"/public"
 const uploadPath = publicPath+'/uploads';
+if(!fs.existsSync(uploadPath))
+  fs.mkdirSync(uploadPath)
+
 // fileHandling
 
 
