@@ -102,7 +102,6 @@ class EndpointWatcher extends EventEmitter{
     }
     
     multicastHandler(msg,time,info){
-        
         if(msg.address=="/announce"){
             const rcvdAnnounce = JSON.parse(msg.args[0]);
             const announce = {type:rcvdAnnounce.type,id:rcvdAnnounce.id,port:rcvdAnnounce.port};
@@ -110,53 +109,55 @@ class EndpointWatcher extends EventEmitter{
             announce.ip = this.osc.lastMsgInfo.address;
             announce.epid = epUUID;
             let curEp= this.endpoints[epUUID];
-            if(curEp){clearTimeout(curEp.timeout);}
+            if(curEp){
+                clearTimeout(curEp.timeout);
+            }
             else{
-                console.log('new announce',announce)
+                console.log('new announce',announce);
                 curEp = new Endpoint(announce,this);
                 this.endpoints[epUUID] = curEp;
                 this.emit("added",this.endpoints[epUUID]);
             }
-            
             curEp.timeout = setTimeout(
                 ()=>{
                     this.emit("removed",curEp );
                     this.endpoints[epUUID].close();
                     delete this.endpoints[epUUID];
-                }, 3*1000*announceTimeSecond);
-                
-            }
-            else if(msg.address=="/ping"){
-                //TODO
-            }
-            else{
-                // TODO try to parse msg to look for uid
-                // for now we doesnt differenciate them
-                const epMulticastingList =  Object.values(this.endpoints).filter(e=>e.remoteIp==info.address);
-                if(epMulticastingList.length){
-                    const nMsg = {...msg}
-                    nMsg.address =msg.address.substr(1).split('/');
-                    nMsg.fromMulticast=true;
-                    // console.log("multicast rcvd",msg.address);
-                    for(const epMulticasting of epMulticastingList){
-                        epMulticasting.emit("message",nMsg)
-                        this.emit("endpointMsg",{ep:epMulticasting,nMsg})
-                    }
-                }
-                
-                else{
-                    console.error('unknown endpoint multicasting',info,msg.address);}
-                    
-                }
-            }
+                }, 3*1000*announceTimeSecond
+                );
         }
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        export default new EndpointWatcher();  
+        else if(msg.address=="/ping"){
+            //TODO
+        }
+        else{
+            // TODO try to parse msg to look for uid
+            // for now we doesnt differenciate them
+            const epMulticastingList =  Object.values(this.endpoints).filter(e=>e.remoteIp==info.address);
+            if(epMulticastingList.length){
+                const nMsg = {...msg}
+                nMsg.address =msg.address.substr(1).split('/');
+                nMsg.fromMulticast=true;
+                // console.log("multicast rcvd",msg.address);
+                for(const epMulticasting of epMulticastingList){
+                    epMulticasting.emit("message",nMsg)
+                    this.emit("endpointMsg",{ep:epMulticasting,nMsg})
+                }
+            }
+            
+            else{
+                console.error('unknown endpoint multicasting',info,msg.address);
+            }
+            
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+export default new EndpointWatcher();  
