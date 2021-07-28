@@ -1,5 +1,6 @@
 import {NodeInstance,APIBase} from './API.mjs' 
 import {loadConf,saveConf,isPi} from "./persistent.mjs"
+import fs from 'fs'
 //////////////
 // API
 
@@ -11,7 +12,7 @@ api.addFunction('save',()=>{
 },[],undefined)
 
 api.addFunction("play",()=>{playDefault()},[],undefined)
-api.addFunction("stop",()=>{if(player.running)player.quit()},[],undefined)
+api.addFunction("stop",()=>{stopDefault()},[],undefined)
 api.addStream("isPlaying",'b',{default:false})
 
 api.addMember('volume','f',{default:1,minimum:0,maximum:2})
@@ -39,7 +40,7 @@ playerInstance.restoreState(pconf)
 const conf =  api.memberGetter();
 
 import Omx from 'node-omxplayer'
-import {execSync} from 'child_process'
+import {exec,execSync} from 'child_process'
 
 export function setup(){
     setBlackBackground();
@@ -66,6 +67,9 @@ player.on('error',e=>{
 })
 
 function playDefault(){
+    if(!fs.existsSync(conf.path)){
+        console.error("audio file do not exists",conf.path)
+    }
     playerInstance.setAnyValue('isPlaying',true,playerInstance)
     const milibelVolume = Math.round((conf.volume - 1) * 4000)
     console.log("volume",milibelVolume)
@@ -73,8 +77,24 @@ function playDefault(){
         player.newSource(conf.path,conf.useHDMI?'hdmi':'local',false,milibelVolume);
     }
     else{
-        execSync('aplay '+conf.path)
+        exec('aplay '+conf.path)
     }
     
     
+}
+
+
+function stopDefault(){
+    console.log('stopping')
+    if(isPi){
+    if(player.running)player.quit()
+    }
+    else{
+        try{
+        exec('killall aplay')
+        }
+        catch(e){
+
+        }
+    }
 }

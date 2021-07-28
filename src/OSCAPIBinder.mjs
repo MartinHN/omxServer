@@ -10,7 +10,7 @@ const announceTimeSecond = 5;
 const oscRcv = new osc.UDPPort({
     localAddress: "0.0.0.0",
     localPort: oscPortNum,
-    metadata: true
+    // metadata: true
 });
 
 oscRcv.instanceName = "externOSC"
