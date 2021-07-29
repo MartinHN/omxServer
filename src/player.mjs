@@ -20,7 +20,7 @@ api.addMember('volume','f',{default:1,minimum:0,maximum:2})
 api.addFile('videoFile','video','video.mov')
 api.addMember('videoFileName','s',{default:'no File',readonly:true})
 api.addMember('useHDMI','b',{default:false})
-api.addMember('path','s',{default:'/home/pi/raspestrio/omxServer/public/uploads/videoFile'})
+api.addMember('path','s',{default:isPi?'/home/pi/raspestrio/omxServer/public/uploads/videoFile':'/home/tinmar/Dev/raspestrio/omxServer/public/uploads/videoFile'})
 
 
 
