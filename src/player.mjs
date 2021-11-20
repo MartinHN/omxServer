@@ -39,7 +39,7 @@ playerInstance.restoreState(pconf)
 
 const conf =  api.memberGetter();
 
-import Omx from 'node-omxplayer'
+import Omx from './OMXPlayerCustom.js'
 import {exec,execSync} from 'child_process'
 
 export function setup(){
