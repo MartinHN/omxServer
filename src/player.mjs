@@ -15,7 +15,7 @@ api.addFunction("play",()=>{playDefault()},[],undefined)
 api.addFunction("stop",()=>{stopDefault()},[],undefined)
 api.addStream("isPlaying",'b',{default:false})
 
-api.addMember('volume','f',{default:1,minimum:0,maximum:2})
+api.addMember('volume','f',{default:1,minimum:0,maximum:1.2})
 
 api.addFile('videoFile','video','video.mov')
 api.addMember('videoFileName','s',{default:'no File',readonly:true})
