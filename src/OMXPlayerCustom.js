@@ -1,5 +1,13 @@
 'use strict';
 
+////////////////:
+// for now only mods are removing --blank arg that was not producing audio for some reason
+
+
+
+
+
+
 // ----- Requires ----- //
 
 let spawn = require('child_process').spawn;
@@ -128,7 +136,6 @@ function Omx (source, output, loop, initialVolume, showOsd) {
 			writeStdin('q');
 
 		} else {
-
 			player = spawnPlayer(src, out, loop, initialVolume, showOsd);
 
 		}
