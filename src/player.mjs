@@ -11,6 +11,7 @@ api.addFunction('save',()=>{
     saveConf(nConf,'player.json');
 },[],undefined)
 
+api.addFunction("play",()=>{stopDefault();playDefault(true)},[],undefined)
 api.addFunction("play",()=>{playDefault()},[],undefined)
 api.addFunction("stop",()=>{stopDefault()},[],undefined)
 api.addStream("isPlaying",'b',{default:false})
@@ -66,7 +67,7 @@ player.on('error',e=>{
     playerInstance.setAnyValue('isPlaying',false,playerInstance)
 })
 
-function playDefault(){
+function playDefault(loop){
     if(!fs.existsSync(conf.path)){
         console.error("audio file do not exists",conf.path)
     }
@@ -74,7 +75,7 @@ function playDefault(){
     const milibelVolume = Math.round((conf.volume - 1) * 4000)
     console.log("volume",milibelVolume)
     if(isPi){
-        player.newSource(conf.path,conf.useHDMI?'hdmi':'local',false,milibelVolume);
+        player.newSource(conf.path,conf.useHDMI?'hdmi':'local',!!loop,milibelVolume);
     }
     else{
         exec('aplay '+conf.path)
