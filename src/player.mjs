@@ -11,7 +11,7 @@ api.addFunction('save',()=>{
     saveConf(nConf,'player.json');
 },[],undefined)
 
-api.addFunction("play",()=>{stopDefault();playDefault(true)},[],undefined)
+api.addFunction("loop",()=>{stopDefault();playDefault(true)},[],undefined)
 api.addFunction("play",()=>{playDefault()},[],undefined)
 api.addFunction("stop",()=>{stopDefault()},[],undefined)
 api.addStream("isPlaying",'b',{default:false})
