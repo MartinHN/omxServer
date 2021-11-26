@@ -91,7 +91,7 @@ function stopDefault(force){
     if(player){
         if(force){
         player.kill()
-    }
+        }
         else{
             player.quit();
         }
