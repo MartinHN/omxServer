@@ -88,7 +88,7 @@ function playDefault(loop){
 function stopDefault(force){
     console.log('stopping')
     if(isPi){
-    if(player.running){
+    if(player){
         if(force){
         player.kill()
     }
