@@ -118,24 +118,29 @@ function Omx (source, output, loop, initialVolume, showOsd) {
 
 	// ----- Setup ----- //
 
-	if (source) {
-		player = spawnPlayer(source, output, loop, initialVolume, showOsd);
-	}
-
-	// ----- Methods ----- //
-	omxplayer.kill = ()=>{
+	function kill  (){
 		if (player) {
+			console.log("[Aplayer] killing")
 			player.kill('SIGKILL');
 			player = null;
 			open = false;
 			updateStatus();
 		}
 	}
+	if (source) {
+		kill();
+		player = spawnPlayer(source, output, loop, initialVolume, showOsd);
+	}
 
+
+	// ----- Methods ----- //
+	omxplayer.kill = ()=>{
+		kill()
+	}
 	// Restarts omxplayer with a new source.
 	omxplayer.newSource = (src, out, loop, initialVolume, showOsd) => {
 
-		if (open) {
+		if (player) {
 			player.on('close', () => { player = spawnPlayer(src, out, loop, initialVolume, showOsd); });
 			player.removeListener('close', updateStatus);
 			writeStdin('q');
