@@ -124,9 +124,11 @@ function Omx (source, output, loop, initialVolume, showOsd) {
 
 	// ----- Methods ----- //
 	omxplayer.kill = ()=>{
-		if (open) {
+		if (player) {
 			player.kill('SIGKILL');
+			player = null;
 			open = false;
+			updateStatus();
 		}
 	}
 
