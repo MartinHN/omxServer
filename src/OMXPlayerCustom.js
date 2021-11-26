@@ -112,8 +112,6 @@ function Omx (source, output, loop, initialVolume, showOsd) {
 
 		if (open) {
 			player.stdin.write(value);
-		} else {
-			throw new Error('Player is closed.');
 		}
 
 	}
@@ -129,8 +127,6 @@ function Omx (source, output, loop, initialVolume, showOsd) {
 		if (open) {
 			player.kill('SIGKILL');
 			open = false;
-		} else {
-			throw new Error('Player is closed.');
 		}
 	}
 
