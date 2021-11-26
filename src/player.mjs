@@ -11,9 +11,9 @@ api.addFunction('save',()=>{
     saveConf(nConf,'player.json');
 },[],undefined)
 
-api.addFunction("loop",()=>{stopDefault();playDefault(true)},[],undefined)
+api.addFunction("loop",()=>{stopDefault(true);playDefault(true)},[],undefined)
 api.addFunction("play",()=>{playDefault()},[],undefined)
-api.addFunction("stop",()=>{stopDefault()},[],undefined)
+api.addFunction("stop",()=>{stopDefault(true)},[],undefined)
 api.addStream("isPlaying",'b',{default:false})
 
 api.addMember('volume','f',{default:1,minimum:0,maximum:1.2})
@@ -85,10 +85,17 @@ function playDefault(loop){
 }
 
 
-function stopDefault(){
+function stopDefault(force){
     console.log('stopping')
     if(isPi){
-    if(player.running)player.quit()
+    if(player.running){
+        if(force){
+        player.kill()
+    }
+        else{
+            player.quit();
+        }
+    }
     }
     else{
         try{
