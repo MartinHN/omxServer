@@ -128,11 +128,12 @@ function Omx (source, output, loop, initialVolume, showOsd) {
 	omxplayer.kill = ()=>{
 		if (open) {
 			player.kill('SIGKILL');
+			open = false;
 		} else {
 			throw new Error('Player is closed.');
 		}
 	}
-	
+
 	// Restarts omxplayer with a new source.
 	omxplayer.newSource = (src, out, loop, initialVolume, showOsd) => {
 
