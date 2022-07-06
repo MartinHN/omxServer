@@ -11,6 +11,7 @@
 // ----- Requires ----- //
 
 let spawn = require('child_process').spawn;
+let execSync = require('child_process').execSync;
 let EventEmitter = require('events');
 
 
