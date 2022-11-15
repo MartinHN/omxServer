@@ -119,9 +119,12 @@ function Omx(source, output, loop, initialVolume, showOsd) {
 
 	function kill() {
 		if (player) {
-			execSync('killall omxplayer && killall omxplayer.bin')
-			console.log("[Aplayer] killing")
-			player.kill('SIGKILL');
+			try {
+				execSync('killall omxplayer && killall omxplayer.bin')
+				console.log("[Aplayer] killing")
+				player.kill('SIGKILL');
+			}
+			catch (e) { console.log("can't kill", e); }
 			player = null;
 			open = false;
 			updateStatus();
