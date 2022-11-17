@@ -3,7 +3,7 @@ import { execSync, execFileSync } from "child_process"
 import { readFileSync, writeFileSync } from 'fs'
 const proc = execSync("uname -a").toString()
 export const isPi = proc.includes("armv")
-export const thisPath = isPi ? "/home/pi/raspestrio/omxServer" : "/home/tinmar/Dev/raspestrio/omxServer"
+export const thisPath = isPi ? "/home/pi/raspestrio/omxServer" : "/Users/tinmarbook/Dev/momo/raspestrio/omxServer"
 const confBasePath = thisPath + "/public/"
 const defaultConf = 'app.conf'
 
@@ -35,6 +35,7 @@ export function saveConf(conf, fName) {
 }
 
 export function isRW() {
+    if (!isPi) return true;
     try {
         const out = execSync("mount | grep 'type ext4' | grep rw")
         if (out) { return true }

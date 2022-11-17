@@ -22,7 +22,7 @@ api.addMember('volume', 'f', { default: 1, minimum: 0, maximum: 1.2 })
 api.addFile('videoFile', 'video', 'video.mov')
 api.addMember('videoFileName', 's', { default: 'no File', readonly: true })
 api.addMember('useHDMI', 'b', { default: false })
-api.addMember('path', 's', { default: isPi ? '/home/pi/raspestrio/omxServer/public/uploads/videoFile' : '/home/tinmar/Dev/raspestrio/omxServer/public/uploads/videoFile' })
+api.addMember('path', 's', { default: isPi ? '/home/pi/raspestrio/omxServer/public/uploads/videoFile' : '/Users/tinmarbook/Dev/momo/raspestrio/omxServer/public/uploads/videoFile' })
 
 
 
@@ -68,6 +68,10 @@ player.on('error', e => {
     playerInstance.setAnyValue('isPlaying', false, playerInstance)
 })
 
+
+let loopEx;
+
+const aplayBin = isPi ? "aplay" : 'afplay'
 function playDefault(loop) {
     if (!fs.existsSync(conf.path)) {
         console.error("audio file do not exists", conf.path)
@@ -79,10 +83,30 @@ function playDefault(loop) {
         player.newSource(conf.path, conf.useHDMI ? 'hdmi' : 'local', !!loop, milibelVolume);
     }
     else {
-        exec('aplay ' + conf.path)
+        const cmd = aplayBin + ' ' + conf.path;
+        console.log("executiong ", cmd);
+        const startLoop = () => {
+            if (loopEx) {
+                stopDefault(true);
+            }
+            loopEx = exec(cmd, (error, stdout, stderr) => {
+                if (error) {
+                    console.error(`exec error: ${error}`);
+                    return;
+                }
+
+                console.log("end of aplay", stdout);
+                console.error("err", stderr);
+                if (loop) {
+                    startLoop();
+                }
+            });
+
+        }
+        loopEx = startLoop();
+
+
     }
-
-
 }
 
 
@@ -100,7 +124,7 @@ function stopDefault(force) {
     }
     else {
         try {
-            execSync('killall aplay')
+            execSync('killall ' + aplayBin)
         }
         catch (e) {
             console.log(" error killing aplay", e)
