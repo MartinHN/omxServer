@@ -4,6 +4,7 @@ import fs from 'fs'
 //////////////
 // API
 
+const useAplay = true; // omx is deprecated...
 const api = new APIBase("player")
 
 api.addFunction('save', () => {
@@ -74,7 +75,7 @@ function playDefault(loop) {
     playerInstance.setAnyValue('isPlaying', true, playerInstance)
     const milibelVolume = Math.round((conf.volume - 1) * 4000)
     console.log("volume", milibelVolume)
-    if (isPi) {
+    if (!useAplay) {
         player.newSource(conf.path, conf.useHDMI ? 'hdmi' : 'local', !!loop, milibelVolume);
     }
     else {
@@ -87,7 +88,7 @@ function playDefault(loop) {
 
 function stopDefault(force) {
     console.log('stopping')
-    if (isPi) {
+    if (!useAplay) {
         if (player) {
             if (force) {
                 player.kill()
@@ -99,10 +100,10 @@ function stopDefault(force) {
     }
     else {
         try {
-            exec('killall aplay')
+            execSync('killall aplay')
         }
         catch (e) {
-
+            console.log(" error killing aplay", e)
         }
     }
 }
