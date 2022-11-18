@@ -70,12 +70,13 @@ player.on('error', e => {
 
 
 let loopEx;
-
+let shouldPlay = false;
 const aplayBin = isPi ? "aplay" : 'afplay'
 function playDefault(loop) {
     if (!fs.existsSync(conf.path)) {
         console.error("audio file do not exists", conf.path)
     }
+    shouldPlay = true;
     playerInstance.setAnyValue('isPlaying', true, playerInstance)
     const milibelVolume = Math.round((conf.volume - 1) * 4000)
     console.log("volume", milibelVolume)
@@ -97,7 +98,7 @@ function playDefault(loop) {
 
                 console.log("end of aplay", stdout);
                 console.error("err", stderr);
-                if (loop && !stderr) {
+                if (loop && shouldPlay) {
                     startLoop();
                 }
             });
@@ -112,6 +113,8 @@ function playDefault(loop) {
 
 function stopDefault(force) {
     console.log('stopping')
+    shouldPlay = false;
+    playerInstance.setAnyValue('isPlaying', false, playerInstance)
     if (!useAplay) {
         if (player) {
             if (force) {
