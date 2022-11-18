@@ -76,7 +76,6 @@ function playDefault(loop) {
     if (!fs.existsSync(conf.path)) {
         console.error("audio file do not exists", conf.path)
     }
-    shouldPlay = true;
     playerInstance.setAnyValue('isPlaying', true, playerInstance)
     const milibelVolume = Math.round((conf.volume - 1) * 4000)
     console.log("volume", milibelVolume)
@@ -90,6 +89,7 @@ function playDefault(loop) {
             if (loopEx) {
                 stopDefault(true);
             }
+            shouldPlay = true;
             loopEx = exec(cmd, (error, stdout, stderr) => {
                 if (error) {
                     console.error(`exec error: ${error}`);
@@ -104,7 +104,7 @@ function playDefault(loop) {
             });
 
         }
-        loopEx = startLoop();
+        startLoop();
 
 
     }
