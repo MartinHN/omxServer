@@ -97,7 +97,7 @@ function playDefault(loop) {
 
                 console.log("end of aplay", stdout);
                 console.error("err", stderr);
-                if (loop) {
+                if (loop && !stderr) {
                     startLoop();
                 }
             });
