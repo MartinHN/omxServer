@@ -70,7 +70,6 @@ player.on('error', e => {
 
 
 let loopEx;
-let shouldPlay = false;
 const aplayBin = isPi ? "aplay" : 'afplay'
 function playDefault(loop) {
     if (!fs.existsSync(conf.path)) {
@@ -89,7 +88,7 @@ function playDefault(loop) {
             if (loopEx) {
                 stopDefault(true);
             }
-            shouldPlay = true;
+            playerInstance.setAnyValue('isPlaying', true, playerInstance)
             loopEx = exec(cmd, (error, stdout, stderr) => {
                 if (error) {
                     console.error(`exec error: ${error}`);
@@ -98,8 +97,10 @@ function playDefault(loop) {
 
                 console.log("end of aplay", stdout);
                 console.error("err", stderr);
-                if (loop && shouldPlay) {
+                if (loop && !!conf.isPlaying) {
                     startLoop();
+                } else {
+                    playerInstance.setAnyValue('isPlaying', false, playerInstance)
                 }
             });
 
@@ -113,7 +114,6 @@ function playDefault(loop) {
 
 function stopDefault(force) {
     console.log('stopping')
-    shouldPlay = false;
     playerInstance.setAnyValue('isPlaying', false, playerInstance)
     if (!useAplay) {
         if (player) {
