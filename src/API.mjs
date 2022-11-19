@@ -89,9 +89,14 @@ export class APIBase {
 
     // Helper
     memberGetter() {
-        return new Proxy(this.__members, {
+        return new Proxy(this, {
             get(target, k, rcv) {
-                return target[k].value
+                if (k in target.__members) {
+                    return target.__members[k].value
+                }
+                if (k in target.__streams) {
+                    return target.__streams[k].value
+                }
             }
         })
     }
