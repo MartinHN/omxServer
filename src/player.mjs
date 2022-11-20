@@ -111,7 +111,6 @@ function playDefault(loop) {
     }
 }
 
-
 function stopDefault(force) {
     console.log('stopping')
     playerInstance.setAnyValue('isPlaying', false, playerInstance)
