@@ -206,6 +206,7 @@ class RemoteAPI extends APIBase {
 
 export class NodeInstance {
     childs = {}
+    onValueChanged = undefined; //(cname,args,from)=>{...}
     setAPI(a) {
         this.api = a;
     }
@@ -227,6 +228,7 @@ export class NodeInstance {
         return res;
 
     }
+
     addChild(name, c) {
         this.childs[name] = c;
         c.parentNode = this;
@@ -269,6 +271,7 @@ export class NodeInstance {
 
         return { address, root, els };
     }
+
     restoreState(s) {
         if (this.api) {
             const mb = this.api.__members;
@@ -314,6 +317,8 @@ export class NodeInstance {
     setAnyValue(cName, args, from) {
         const value = this.api.setAnyFrom(from, cName, args)
         const path = this.getDepthPath(cName);
+        if (this.onValueChanged)
+            this.onValueChanged(cName, args, from);
         // console.log("sending state change from",from.instanceName,path.address)
         path.root.evts.emit("stateChanged", { from, address: path.address, args: value })
     }
@@ -331,6 +336,7 @@ export class NodeInstance {
             console.error(addressSpl[0], 'not found in', this.childs)
         }
     }
+
     getChildsWithAPIType(t) {
         // TODO use getChildsIfPredicate
         let res = []
