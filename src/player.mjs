@@ -1,5 +1,5 @@
 import { NodeInstance, APIBase } from './API.mjs'
-import { loadConf, saveConf, isPi } from "./persistent.mjs"
+import { loadConf, saveConf, isPi, thisPath } from "./persistent.mjs"
 import fs from 'fs'
 //////////////
 // API
@@ -17,8 +17,9 @@ api.addFunction("play", () => { stopDefault(true); playDefault() }, [], undefine
 api.addFunction("stop", () => { stopDefault(true) }, [], undefined)
 api.addStream("isPlaying", 'b', { default: false })
 
-api.addMember('volume', 'f', { default: 1, minimum: 0, maximum: 1.2 })
-
+api.addMember('volume', 'f', { default: 1, minimum: 0, maximum: 1 })
+api.addFunction('toggleTestSound', () => { toggleTestSound(true) }, [], undefined)
+api.addStream("isTesting", 'b', { default: false })
 api.addFile('videoFile', 'video', 'video.mov')
 api.addMember('videoFileName', 's', { default: 'no File', readonly: true })
 api.addMember('useHDMI', 'b', { default: false })
@@ -41,7 +42,6 @@ playerInstance.restoreState(pconf)
 
 const conf = api.memberGetter();
 
-import Omx from './OMXPlayerCustom.js'
 import { exec, execSync } from 'child_process'
 
 export function setup() {
@@ -57,32 +57,32 @@ export function setBlackBackground() {
         console.log('not on a rasp????????', e)
     }
 }
-// Create an instance of the player with the source.
-var player = Omx();
-player.on('close', e => {
-    console.log("player ended")
-    playerInstance.setAnyValue('isPlaying', false, playerInstance)
-})
-player.on('error', e => {
-    console.log("player error")
-    playerInstance.setAnyValue('isPlaying', false, playerInstance)
-})
 
+
+playerInstance.onValueChanged = (cname, args, from) => {
+    if (cname == "volume") {
+        setVolumePct(parseFloat(args) * 100);
+    }
+}
 
 let loopEx;
 const aplayBin = isPi ? "aplay" : 'afplay'
+const audioTestPath = thisPath + "/media/drumLoop.wav"
 function playDefault(loop) {
-    if (!fs.existsSync(conf.path)) {
-        console.error("audio file do not exists", conf.path)
+    setVolumePct(conf.volume * 100);
+
+    const trueAudioPath = conf.isTesting ? audioTestPath : conf.path;
+    if (!fs.existsSync(trueAudioPath)) {
+        console.error("audio file do not exists", trueAudioPath)
     }
     playerInstance.setAnyValue('isPlaying', true, playerInstance)
     const milibelVolume = Math.round((conf.volume - 1) * 4000)
     console.log("volume", milibelVolume)
     if (!useAplay) {
-        player.newSource(conf.path, conf.useHDMI ? 'hdmi' : 'local', !!loop, milibelVolume);
+        player.newSource(trueAudioPath, conf.useHDMI ? 'hdmi' : 'local', !!loop, milibelVolume);
     }
     else {
-        const cmd = aplayBin + ' ' + conf.path;
+        const cmd = aplayBin + ' ' + trueAudioPath;
         console.log("executiong ", cmd);
         const startLoop = () => {
             if (loopEx) {
@@ -133,4 +133,44 @@ function stopDefault(force) {
             console.log(" error killing aplay", e)
         }
     }
+}
+
+
+function setVolumePct(v) {
+    console.log("should set live vol pct to", v);
+    if (isPi) {
+        const pctV = parseFloat(v);
+        const cmd = "amixer -q -M sset Headphone " + pctV + "%"
+        exec(cmd, (err) => {
+            if (err) {
+                console.err("err while setting volume : ", e)
+                return;
+            }
+            const actualVol = parseInt(getVolumePct());
+            if (actualVol != parseInt(pctV)) {
+                console.error("volume not set properly : wanted", pctV, "but got ", actualVol);
+            }
+
+        });
+    }
+}
+
+function getVolumePct() {
+    try {
+        if (isPi) {
+            const cmd = "amixer -M sget Headphone | grep -o -E '\[..%\]'"
+            let res = execSync(cmd).toString();
+            let vs = res.replace("[", "");
+            return parseFloat(vs) / 100;
+        }
+
+    } catch (e) {
+        console.err("err while setting volume : ", e)
+    }
+    return 1;
+}
+
+function toggleTestSound() {
+    playerInstance.setAnyValue('isTesting', !conf.isTesting, playerInstance);
+    stopDefault(true); playDefault();
 }
