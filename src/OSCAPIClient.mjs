@@ -43,7 +43,7 @@ oscRcv.on('ready', e => {
     const address = oscRcv.socket.address();
     const udpPort = address.port;
     console.log(`socket listening ${address.address}:${address.port}`);
-    startSendAnnounce(udpPort)
+    if (announceDNS) startSendAnnounce(udpPort)
 })
 oscRcv.on("message", (msg, time, info) => {
     fromIp = info.address;
@@ -69,7 +69,9 @@ oscRcv.on('error', e => {
 })
 
 let rootNode;
-export function setup(r) {
+let announceDNS = false;
+export function setup(r, _announceDNS = false) {
+    announceDNS = _announceDNS;
     oscRcv.open()
     rootNode = r;
     rootNode.setRoot()
