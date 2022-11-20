@@ -153,19 +153,32 @@ function setVolumePct(v) {
 
         });
     }
+    getVolumePct();
 }
 
 function getVolumePct() {
     try {
+        let cmdRes = ""
         if (isPi) {
             const cmd = "amixer -M sget Headphone | grep -o -E '\[..%\]'"
-            let res = execSync(cmd).toString();
-            let vs = res.replace("[", "");
-            return parseFloat(vs) / 100;
+            cmdRes = execSync(cmd).toString();
+        }
+        else {
+            cmdRes = "Simple mixer control 'Headphone',0  \n Capabilities: pvolume pvolume - joined pswitch pswitch - joined \n Playback channels: Mono \n Limits: Playback - 10239 - 400 \n Mono: Playback - 804[63%][-8.04dB][on] \n "
+        }
+        const re = /\[(\d+)%/s
+        const res = re.exec(cmdRes);
+        if (res && res.length) {
+            const vs = res[0].replace("[", "");
+            const num = parseFloat(vs);
+            return num;
+        }
+        else {
+            console.log("unmatch re", res)
         }
 
     } catch (e) {
-        console.err("err while setting volume : ", e)
+        console.error("err while setting volume : ", e)
     }
     return 1;
 }
