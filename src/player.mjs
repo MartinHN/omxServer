@@ -159,8 +159,9 @@ function getVolumePct() {
     try {
         let cmdRes = ""
         if (isPi) {
-            const cmd = "amixer -M sget Headphone | grep -o -E '\[..%\]'"
+            const cmd = "amixer -M sget Headphone"
             cmdRes = execSync(cmd).toString();
+            // console.log("vol returned ", cmdRes);
         }
         else {
             cmdRes = "Simple mixer control 'Headphone',0  \n Capabilities: pvolume pvolume - joined pswitch pswitch - joined \n Playback channels: Mono \n Limits: Playback - 10239 - 400 \n Mono: Playback - 804[63%][-8.04dB][on] \n "
