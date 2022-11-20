@@ -56,15 +56,10 @@ export class OSCServerModule {
     this.udpPort = udpPort;
     udpPort.on('ready', () => {
       clearTimeout(udpPort.timeout)
-      const ipAddresses = getIPAddresses();
-      if (!ipAddresses.length) {
-        throw new Error("no interface to bind to...")
-      }
+
       udpPort.isConnected = true;
       console.log('Listening for OSC over UDP.');
-      ipAddresses.forEach((address) => {
-        console.log(' Host:', address + ', Port:', udpPort.options.localPort);
-      });
+
       console.log('SendingTo');
 
       console.log(
@@ -80,6 +75,13 @@ export class OSCServerModule {
       this.defferReconnect(udpPort)
     });
 
+    udpPort.on("open", () => {
+      // console.log(">>>>>>opened");
+      clearTimeout(udpPort.timeout);
+      udpPort.isConnected = true;
+    })
+
+
     this.tryReConnect(udpPort, true)
   }
 
@@ -88,6 +90,10 @@ export class OSCServerModule {
       console.log("closing udpPort")
       this.udpPort.isConnected = false;
       this.udpPort.close();
+      if (this.udpPort.socket) {
+        console.log("killing socket")
+        delete this.udpPort.socket
+      }
     }
     else {
       console.error("can't close")
@@ -119,7 +125,7 @@ export class OSCServerModule {
     if (!firstAttempt)
       console.warn('try connect', port.options.localAddress, port.options.localPort)
     try {
-
+      this.close();
       port.open();
     } catch (e) {
       console.error('can\'t connect to ', port.localAddress, port.localPort, e)
@@ -153,6 +159,10 @@ export class OSCServerModule {
       if (address != "/announce")
         console.log('sending msg', { address, args }, ' to', remoteAddr, remotePort)
       this.udpPort.send({ address, args }, remoteAddr, remotePort)
+    }
+    else {
+      dbg.error("[oscServer] not connected ignoring sending on address ", address)//,this.udpPort)
+      this.defferReconnect(this.udpPort)
     }
   }
 }
