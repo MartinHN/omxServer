@@ -3,11 +3,14 @@ if test -f "/boot/noVlc"; then
     exit 0
 fi
 
-FILE=/boot/isMaster
-if test -f "$FILE"; then
-    echo "starting as Master"
-    node src/server.mjs
-else
-    echo "starting as slave"
-    node src/slaveInstance.mjs
-fi
+echo "starting omxPlayer"
+node src/slaveInstance.mjs
+
+# FILE=/boot/isMaster
+# if test -f "$FILE"; then
+#     echo "starting as Master"
+#     node src/server.mjs
+# else
+#     echo "starting as slave"
+#     node src/slaveInstance.mjs
+# fi
