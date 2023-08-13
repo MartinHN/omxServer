@@ -4,7 +4,7 @@ if test -f "/boot/noVlc"; then
 fi
 
 echo "starting omxPlayer"
-node src/slaveInstance.mjs
+node --unhandled-rejections=strict src/slaveInstance.mjs
 
 # FILE=/boot/isMaster
 # if test -f "$FILE"; then
