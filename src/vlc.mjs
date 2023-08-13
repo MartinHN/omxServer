@@ -183,7 +183,7 @@ export class VlcPlayer {
     async forceKill() {
         console.error("force killlllll")
         await this.close();
-        execSync(`killAll ${vlcBin}; echo $?;`)
+        execSync(`killAll vlc; echo $?;`)
     }
 
 }
