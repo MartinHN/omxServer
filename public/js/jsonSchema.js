@@ -39,7 +39,7 @@ class widgSync{
     }
 };
 
-function addWidget(domP,typeObj,name,addr){
+function addWidget(domP, typeObj, name, addr, readonly) {
     const t = typeObj.type
     let el;
     
@@ -87,15 +87,17 @@ function addWidget(domP,typeObj,name,addr){
             })
             const wsync = new widgSync(el,addr,v=>{el.setValue(v)});
         }
-        if(!el){
-            console.error("no type found for ",t)
-        }
-        
-        if(el){
-            wcont.innerHTML = name;
-            wcont.appendChild(el);
-            domP.appendChild(wcont);
-        }
+    if (!el) {
+        console.error("no type found for ", t)
+    }
+
+    if (el) {
+        wcont.innerHTML = name;
+        if (!!readonly)
+            wcont.attributeStyleMap.set('pointer-events', 'none')
+        wcont.appendChild(el);
+        domP.appendChild(wcont);
+    }
         return el;
         
         
@@ -128,7 +130,7 @@ function addWidget(domP,typeObj,name,addr){
                 let v;
                 v = getFrom("members",k)
                 if(v!==undefined){
-                    this.__addMember(c,rootAddr,k,v);
+                    this.__addMember(c, rootAddr, k, v, false);
                     delete schema.members[k]
                     continue;
                 }
@@ -154,7 +156,7 @@ function addWidget(domP,typeObj,name,addr){
             }
             if(schema.members && Object.keys(schema.members).length){
                 for(const [k,v] of Object.entries( schema.members)){
-                    this.__addMember(c,rootAddr,k,v);
+                    this.__addMember(c, rootAddr, k, v, false);
                 }
             }
             if(schema.streams && Object.keys(schema.streams).length){
@@ -210,14 +212,14 @@ function addWidget(domP,typeObj,name,addr){
             c.appendChild(cc);
         }
 
-        __addMember(c,rootAddr,k,v){
+        __addMember(c, rootAddr, k, v, readonly) {
             const nAddr = rootAddr?[...rootAddr,k]:[k]
             if("type" in v){
-                this.widgs[k] = addWidget(c,v,k,nAddr)
+                this.widgs[k] = addWidget(c, v, k, nAddr, readonly)
             }
         }
         __addStream(c,rootAddr,k,v){
-            this.__addMember(c,rootAddr,k,v)
+            this.__addMember(c, rootAddr, k, v, true)
         }
 
         __addFile(c,rootAddr,k,v){
