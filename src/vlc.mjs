@@ -29,7 +29,11 @@ export class VlcPlayer {
      */
     async open(opts) {
         if (this.isAlive()) {
+            console.error("!!! trying to reopen VLC before close")
             await this.forceKill();
+        }
+        else {
+            console.log("opening vlc")
         }
         return new Promise((resolve, reject) => {
             let options = [
@@ -38,8 +42,12 @@ export class VlcPlayer {
                 "--no-video-title-show",
                 "-I", "rc"
             ];
-            if (opts?.audio?.compress) {
-                options.add(["--audio-filter", "compressor"]);
+            if (opts) {
+                if (opts.audio) {
+                    if (opts.audio.compress) {
+                        options.push("--audio-filter", "compressor");
+                    }
+                }
             }
             try {
                 this._vlc = spawn(vlcBin, options);
@@ -127,8 +135,9 @@ export class VlcPlayer {
      */
     async close() {
         await this.exec("quit").catch(e => {
-            console.error('could not close', e);
+            console.error('could not close : ', e);
         }).finally(() => {
+            console.log("close ended")
             this._vlc = undefined;
             this._playlist = new Map();
             this._playlistIndex = -1;
@@ -157,10 +166,17 @@ export class VlcPlayer {
 
 
     isAlive() {
-        return (this._vlc !== null) || execSync(`pgrep ${vlcBin}; echo $?;`)
+        const processIsAlive = () => {
+            const cmd = `pgrep ${vlcBin}; echo $?;`;
+            const res = execSync(cmd).toString()
+            // console.log('isAlive', cmd, res)
+            return res == "0"
+        }
+        return (this._vlc) || processIsAlive()
     }
 
     async forceKill() {
+        console.error("force killlllll")
         await this.close();
         execSync(`killAll ${vlcBin}; echo $?;`)
     }

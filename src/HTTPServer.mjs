@@ -30,6 +30,8 @@ const requestListener = function (req, res) {
         const localName = req.url.replace('/upload/', '')//req.body.file.or
         const absPath = uploadPath + '/' + localName
         console.log(absPath)
+        if (rootNode)
+            rootNode.onValueChanged('file_will_upload', localName);// hack to notify others that may use this file  
         setRW(true)
         var dest = fs.createWriteStream(absPath)
         dest.on('close', e => {

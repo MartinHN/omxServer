@@ -27,6 +27,7 @@ api.addFunction('toggleTestSound', () => { toggleTestSound(true) }, [], undefine
 api.addStream("isTesting", 'b', { default: false })
 api.addFile(uniqueMediaName, 'video', 'video.mov')
 api.addMember(uniqueMediaName + "Name", 's', { default: 'no File', readonly: true })
+api.addMember('compress', 'b', { default: false })
 // api.addMember('useHDMI', 'b', { default: false })
 // api.addMember('path', 's', { default: defaultUniqueMediaPath })
 
@@ -51,9 +52,9 @@ import { exec, execSync } from 'child_process'
 import { VlcPlayer } from './vlc.mjs'
 let vlc = new VlcPlayer(true)
 
-export function setup() {
+export async function setup() {
     setBlackBackground();
-    vlc.open();
+    await vlc.open({ audio: { compress: conf.compress } });
 }
 
 
@@ -73,14 +74,22 @@ playerServer.onValueChanged = (cname, args, from) => {
     if (cname == "volume") {
         setVolumePct(parseFloat(args) * 100);
     }
-    if (cname == uniqueMediaName + "Name") {
+    else if (cname == uniqueMediaName + "Name") {
         savePlayerConf();
+    }
+    else if (cname == 'compress') {
+        vlc.close().then(() => setup()).catch(console.error).then(() => playDefault(lastLoopValue)).catch(console.error);
+    }
+    else if (cname == 'file_will_upload') { // stop when uploading new
+        playerServer.setAnyValue('isPlaying', false, from)// playerServer)   
     }
 }
 
 const audioTestPath = thisPath + "/media/drumStereo.wav"
 
+let lastLoopValue = false;
 function playDefault(loop) {
+    lastLoopValue = loop;
     if (!vlc || !vlc.isAlive()) {
         console.error('force vlc res')
         vlc = new VlcPlayer(true)
@@ -94,7 +103,7 @@ function playDefault(loop) {
     }
     playerServer.setAnyValue('isPlaying', true, playerServer)
     vlc.play(trueAudioPath);
-    vlc.repeat(true);
+    vlc.repeat(loop);
 
 }
 
