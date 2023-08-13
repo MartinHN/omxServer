@@ -20,7 +20,7 @@ export class VlcPlayer {
     constructor(verbose = false) {
         this._verbose = verbose;
         this._playlist = new Map();
-        this._playlistIndex = -1;
+        this._playlistIndex = 0;
     }
 
     /**
@@ -78,7 +78,10 @@ export class VlcPlayer {
                 await this.add(mediaPath);
             }
             let index = this._playlist.get(mediaPath);
-            await this.exec(`goto ${index}`);
+            console.log("should play", mediaPath)
+            console.log("playlist : ", [...this._playlist.entries()])
+            console.log("playing index", index)
+            await this.exec(`goto ${index + 3}`); // hacking inner VLC offset.....
         }
     }
 
@@ -95,6 +98,7 @@ export class VlcPlayer {
      * @param {string} mediaPath The path of the media to play.
     */
     async add(mediaPath) {
+        console.log("adding to play list", mediaPath)
         if (!fs.existsSync(mediaPath)) {
             throw new Error(`Media '${mediaPath}' not found.`);
         }
@@ -140,7 +144,7 @@ export class VlcPlayer {
             console.log("close ended")
             this._vlc = undefined;
             this._playlist = new Map();
-            this._playlistIndex = -1;
+            this._playlistIndex = 0;
         });
     }
 
@@ -150,6 +154,7 @@ export class VlcPlayer {
      * @param {string} command - The command to execute.
      */
     exec(command) {
+        console.log("exec : ", command)
         return new Promise((resolve, reject) => {
             if (!command) {
                 return reject("The command parameter must be provided.");

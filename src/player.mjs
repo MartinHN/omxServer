@@ -85,14 +85,14 @@ playerServer.onValueChanged = (cname, args, from) => {
         vlc.close().then(() => setup()).catch(console.error).then(() => playDefault(lastLoopValue)).catch(console.error);
     }
     else if (cname == 'file_will_upload') { // stop when uploading new
-        playerServer.setAnyValue('isPlaying', false, from)// playerServer)   
+        stopDefault();   
     }
 }
 
 const audioTestPath = thisPath + "/media/drumStereo.wav"
 
 let lastLoopValue = false;
-function playDefault(loop) {
+async function playDefault(loop) {
     lastLoopValue = loop;
     if (!vlc || !vlc.isAlive()) {
         console.error('force vlc res')
@@ -106,8 +106,9 @@ function playDefault(loop) {
         console.error("audio file do not exists", trueAudioPath)
     }
     playerServer.setAnyValue('isPlaying', true, playerServer)
-    vlc.play(trueAudioPath);
-    vlc.repeat(loop);
+    console.log("willPlay ", trueAudioPath);
+    await vlc.play(trueAudioPath);
+    await vlc.repeat(loop);
 
 }
 
@@ -135,10 +136,10 @@ function setVolumePct(v, boost) {
                 console.err("err while setting volume : ", err)
                 return;
             }
-            const actualVol = parseInt(getVolumePct());
-            if (actualVol != alsaFinalV) {
-                console.error("volume not set properly : wanted", actualVol, "but got ", alsaFinalV);
-            }
+            // const actualVol = parseInt(getVolumePct());
+            // if (actualVol != alsaFinalV) {
+            //     console.error("volume not set properly : wanted", alsaFinalV, "but got ", actualVol);
+            // }
 
         });
     }
