@@ -1,3 +1,8 @@
+if test -f "/boot/noVlc"; then
+    echo "prevent vlc start"
+    exit 0
+fi
+
 FILE=/boot/isMaster
 if test -f "$FILE"; then
     echo "starting as Master"
