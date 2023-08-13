@@ -27,6 +27,7 @@ api.addFunction('toggleTestSound', () => { toggleTestSound(true) }, [], undefine
 api.addStream("isTesting", 'b', { default: false })
 api.addFile(uniqueMediaName, 'video', 'video.mov')
 api.addMember(uniqueMediaName + "Name", 's', { default: 'no File', readonly: true })
+api.addMember('volumeBoost', 'f', { default: 0, minimum: 0, maximum: 1 })
 api.addMember('compress', 'b', { default: false })
 // api.addMember('useHDMI', 'b', { default: false })
 // api.addMember('path', 's', { default: defaultUniqueMediaPath })
@@ -72,7 +73,10 @@ export function setBlackBackground() {
 
 playerServer.onValueChanged = (cname, args, from) => {
     if (cname == "volume") {
-        setVolumePct(parseFloat(args) * 100);
+        setVolumePct(parseFloat(args), conf.volumeBoost);
+    }
+    else if (cname == "volumeBoost") {
+        setVolumePct(conf.volume, parseFloat(args));
     }
     else if (cname == uniqueMediaName + "Name") {
         savePlayerConf();
@@ -95,7 +99,7 @@ function playDefault(loop) {
         vlc = new VlcPlayer(true)
         vlc.open();
     }
-    setVolumePct(conf.volume * 100);
+    setVolumePct(conf.volume, conf.volumeBoost);
 
     const trueAudioPath = conf.isTesting ? audioTestPath : defaultUniqueMediaPath;
     if (!fs.existsSync(trueAudioPath)) {
@@ -115,19 +119,25 @@ function stopDefault(force) {
 }
 
 
-function setVolumePct(v) {
-    console.log("should set live vol pct to", v);
+function setVolumePct(v, boost) {
+
+    console.log("should set live vol pct to", v, boost);
     if (isPi) {
-        const pctV = parseFloat(v);
-        const cmd = "amixer -q -M sset PCM " + pctV + "%"
+        const alsa0dB = .86; // more than 86% is over 0dB and may incur distorted sounds
+        const pctV = Math.min(alsa0dB, parseFloat(v) * alsa0dB);
+        const bostHeadroom = 1. - alsa0dB;
+        const boostV = Math.min(bostHeadroom, parseFloat(boost) * bostHeadroom);
+        const alsaFinalV = Math.round(100 * (pctV + boostV));
+        console.log("setting vol", alsaFinalV, 'from ', pctV * 100, boostV * 100)
+        const cmd = "amixer -q -M sset PCM " + alsaFinalV + "%"
         exec(cmd, (err) => {
             if (err) {
                 console.err("err while setting volume : ", err)
                 return;
             }
             const actualVol = parseInt(getVolumePct());
-            if (actualVol != parseInt(pctV)) {
-                console.error("volume not set properly : wanted", pctV, "but got ", actualVol);
+            if (actualVol != alsaFinalV) {
+                console.error("volume not set properly : wanted", actualVol, "but got ", alsaFinalV);
             }
 
         });
