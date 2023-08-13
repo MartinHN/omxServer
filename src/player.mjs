@@ -129,7 +129,7 @@ function stopDefault(force) {
             execSync('killall ' + aplayBin)
         }
         catch (e) {
-            console.log(" error killing aplay", e)
+            console.log(" not killing aplay ")
         }
     }
 }
