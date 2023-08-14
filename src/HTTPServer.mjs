@@ -3,7 +3,7 @@ import path from 'path'
 import fs from 'fs'
 import pump from 'pump'
 import { readFileSync } from 'fs'
-import WebSocket from "ws";
+import { WebSocketServer } from "ws";
 import osc from 'osc'
 import { setRW, thisPath } from './persistent.mjs'
 import { httpPort } from './conf.mjs'
@@ -131,7 +131,7 @@ export const httpServer = http.createServer(requestListener);
 
 // WS
 
-const wss = new WebSocket.Server({
+const wss = new WebSocketServer({
     server: httpServer
 });
 
