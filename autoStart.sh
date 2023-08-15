@@ -3,8 +3,13 @@ if test -f "/boot/noVlc"; then
     exit 0
 fi
 
-echo "starting omxPlayer"
-/home/pi/.local/share/pnpm/node --unhandled-rejections=strict src/slaveInstance.mjs
+RCF="/home/pi/.bash_profile"
+if [[ -f $RCF ]]; then
+    echo "init pi"
+    source $RCF
+fi
+
+node --unhandled-rejections=strict src/slaveInstance.mjs
 
 # FILE=/boot/isMaster
 # if test -f "$FILE"; then
