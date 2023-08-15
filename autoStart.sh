@@ -4,7 +4,7 @@ if test -f "/boot/noVlc"; then
 fi
 
 echo "starting omxPlayer"
-node --unhandled-rejections=strict src/slaveInstance.mjs
+/home/pi/.local/share/pnpm/node --unhandled-rejections=strict src/slaveInstance.mjs
 
 # FILE=/boot/isMaster
 # if test -f "$FILE"; then
