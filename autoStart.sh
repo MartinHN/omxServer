@@ -1,7 +1,3 @@
-if test -f "/boot/noVlc"; then
-    echo "prevent vlc start"
-    exit 0
-fi
 
 RCF="/home/pi/.bash_profile"
 if [[ -f $RCF ]]; then

@@ -29,6 +29,7 @@ api.addFile(uniqueMediaName, 'video', 'video.mov')
 api.addMember(uniqueMediaName + "Name", 's', { default: 'no File', readonly: true })
 api.addMember('volumeBoost', 'f', { default: 0, minimum: 0, maximum: 1 })
 api.addMember('compress', 'b', { default: false })
+api.addMember('blackScreenOnBoot', 'b', { default: true })
 // api.addMember('useHDMI', 'b', { default: false })
 // api.addMember('path', 's', { default: defaultUniqueMediaPath })
 
@@ -54,7 +55,8 @@ import { VlcPlayer } from './vlc.mjs'
 let vlc = new VlcPlayer(true)
 
 export async function setup() {
-    setBlackBackground();
+    if (conf.blackScreenOnBoot)
+        setBlackBackground();
     await vlc.open({ audio: { compress: conf.compress } });
 }
 
