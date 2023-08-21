@@ -95,6 +95,7 @@ const audioTestPath = thisPath + "/media/drumStereo.wav"
 
 let lastLoopValue = false;
 async function playDefault(loop) {
+
     lastLoopValue = loop;
     if (!vlc || !vlc.isAlive()) {
         console.error('force vlc res')
@@ -110,7 +111,7 @@ async function playDefault(loop) {
     playerServer.setAnyValue('isPlaying', true, playerServer)
     console.log("willPlay ", trueAudioPath);
     await vlc.play(trueAudioPath);
-    await vlc.repeat(loop);
+    await vlc.repeat(!!loop);
 
 }
 

@@ -78,9 +78,9 @@ export class VlcPlayer {
                 await this.add(mediaPath);
             }
             let index = this._playlist.get(mediaPath);
-            console.log("should play", mediaPath)
-            console.log("playlist : ", [...this._playlist.entries()])
-            console.log("playing index", index)
+            // console.log("should play", mediaPath)
+            // console.log("playlist : ", [...this._playlist.entries()])
+            // console.log("playing index", index)
             await this.exec(`goto ${index + 3}`); // hacking inner VLC offset.....
         }
     }
@@ -98,7 +98,7 @@ export class VlcPlayer {
      * @param {string} mediaPath The path of the media to play.
     */
     async add(mediaPath) {
-        console.log("adding to play list", mediaPath)
+        // console.log("adding to play list", mediaPath)
         if (!fs.existsSync(mediaPath)) {
             throw new Error(`Media '${mediaPath}' not found.`);
         }
