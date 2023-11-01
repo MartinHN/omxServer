@@ -1,3 +1,7 @@
 {
-    "port": "/dev/ttyS18"
+    "port": "/dev/tty.usbserial-1420",
+    "sketch": "../../relaystrio/relaystrio.ino",
+    "board": "esp32:esp32:esp32",
+    "output": "build",
+    "configuration": "PSRAM=disabled,PartitionScheme=default,CPUFreq=240,FlashMode=qio,FlashFreq=80,FlashSize=4M,UploadSpeed=921600,LoopCore=1,EventsCore=1,DebugLevel=error,EraseFlash=none"
 }
